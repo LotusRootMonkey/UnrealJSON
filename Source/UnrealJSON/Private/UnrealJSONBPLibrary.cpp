@@ -956,6 +956,13 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 			{
 				StrProperty->SetPropertyValue(propertyPtr, stdstring_To_FString(j));
 			}
+			else if (j.type() == nlohmann::json::value_t::object)
+			{
+				std::ostringstream o;
+				o << j;
+
+				StrProperty->SetPropertyValue(propertyPtr, stdstring_To_FString(o.str()));
+			}
 			else
 			{
 				success = false;
@@ -975,6 +982,13 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 			if (j_T.type() == nlohmann::json::value_t::string || j_T.type() == nlohmann::json::value_t::null)
 			{
 				StrProperty->SetPropertyValue(propertyPtr, stdstring_To_FString(j_T));
+			}
+			else if (j.type() == nlohmann::json::value_t::object)
+			{
+				std::ostringstream o;
+				o << j;
+
+				StrProperty->SetPropertyValue(propertyPtr, stdstring_To_FString(o.str()));
 			}
 			else
 			{
