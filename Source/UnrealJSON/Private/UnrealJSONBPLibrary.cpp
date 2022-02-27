@@ -148,20 +148,150 @@ void UUnrealJSONBPLibrary::DeleteField(const FString& json, const FString& field
 		j = nlohmann::json::parse(FString_To_stdstring(json));
 	}
 
-	auto r = j.find(FString_To_stdstring(fieldName));
-	if (r == j.end())
+	//auto r = j.find(FString_To_stdstring(fieldName));
+	//if (r == j.end())
+	//{
+	//	info = "fieldName not exists";
+	//	success = false;
+	//	return;
+	//}
+
+	nlohmann::json* j_Ptr = nullptr;
+	FString lastFieldName;
+
+	if (pathCheck(j, fieldName, j_Ptr, lastFieldName, true) == false)
+	{
+		info = "Field error";
+		success = false;
+		return;
+	}
+	else if (j_Ptr == nullptr)
+	{
+		info = "Field error";
+		success = false;
+		return;
+	}
+
+	if (fieldName_check(*j_Ptr, lastFieldName) == false)
 	{
 		info = "fieldName not exists";
 		success = false;
 		return;
 	}
 
-	j.erase(FString_To_stdstring(fieldName));
+	j_Ptr->erase(FString_To_stdstring(lastFieldName));
 
 	std::ostringstream o;
 	o << j;
 
 	result = stdstring_To_FString(o.str());
+}
+
+bool UUnrealJSONBPLibrary::analyticalSeparator(const FString& fieldName, TArray<FString>& fieldNameArray)
+{
+	fieldNameArray.Empty();
+
+	bool separator = false;
+	FString str;
+
+	for (auto i = 0; i < fieldName.Len(); i++)
+	{
+		if (separator == false)
+		{
+			if (fieldName[i] == '#')
+			{
+				if (i + 1 >= fieldName.Len())
+				{
+					return false;
+				}
+
+				if (fieldName[i + 1] == '-')
+				{
+					str += "-";
+					i++;
+				}
+				else if (fieldName[i + 1] == '#')
+				{
+					str += "#";
+					i++;
+				}
+				else
+				{
+					return false;
+				}
+			}
+			else if (fieldName[i] == '-')
+			{
+				separator = true;
+			}
+			else
+			{
+				str += fieldName[i];
+			}
+		}
+		else
+		{
+			if (str.IsEmpty())
+			{
+				return false;
+			}
+			else
+			{
+				i--;
+				fieldNameArray.Push(str);
+				str.Empty();
+				separator = false;
+			}
+		}
+	}
+
+	if (str.IsEmpty())
+	{
+		return false;
+	}
+	else
+	{
+		fieldNameArray.Push(str);
+	}
+
+	return true;
+}
+
+bool UUnrealJSONBPLibrary::generationSeparator(const TArray<FString>& fieldNameArray, FString& fieldName)
+{
+	if (fieldNameArray.Num() == 0)
+	{
+		return false;
+	}
+
+	fieldName.Empty();
+	
+	for (auto i = 0; i < fieldNameArray.Num(); i++)
+	{
+		for (auto j = 0; j < fieldNameArray[i].Len(); j++)
+		{
+			if (fieldNameArray[i][j] == '#')
+			{
+				fieldName += "##";
+			}
+			else if (fieldNameArray[i][j] == '-')
+			{
+				fieldName += "#-";
+			}
+			else
+			{
+				fieldName += fieldNameArray[i][j];
+			}
+		}
+		fieldName += "-";
+	}
+
+	if (fieldName.IsEmpty() == false)
+	{
+		fieldName = fieldName.Mid(0, fieldName.Len() - 1);
+	}
+
+	return true;
 }
 
 void UUnrealJSONBPLibrary::Generic_T_TO_JSON(FProperty* property, void* propertyPtr, FString& json, bool& success, FString& info, int32 depth)
@@ -195,14 +325,32 @@ void UUnrealJSONBPLibrary::Generic_JSON_TO_T(const FString& json, FString fieldN
 		}
 		else
 		{
-			auto r = j.find(FString_To_stdstring(fieldName));
-			if (r == j.end())
+			nlohmann::json* j_Ptr = nullptr;
+			FString lastFieldName;
+
+			if (pathCheck(j, fieldName, j_Ptr, lastFieldName) == false)
 			{
-				info = "Field does not exist";
+				info = "Field error";
 				success = false;
 				return;
 			}
-			deserialize(r.value(), property, propertyPtr, success, info, depth);
+			else if (j_Ptr == nullptr)
+			{
+				info = "Field error";
+				success = false;
+				return;
+			}
+
+			deserialize(*j_Ptr, property, propertyPtr, success, info, depth);
+
+			//auto r = j.find(FString_To_stdstring(fieldName));
+			//if (r == j.end())
+			//{
+			//	info = "Field does not exist";
+			//	success = false;
+			//	return;
+			//}
+			//deserialize(r.value(), property, propertyPtr, success, info, depth);
 		}
 	}
 }
@@ -239,19 +387,44 @@ void UUnrealJSONBPLibrary::Generic_AddField(const FString& json, const FString& 
 		j = nlohmann::json::parse(FString_To_stdstring(json));
 	}
 
-	auto r = j.find(FString_To_stdstring(fieldName));
-	if (r != j.end())
-	{
-		info = "fieldName already exists";
-		success = false;
-		return;
-	}
+	//auto r = j.find(FString_To_stdstring(fieldName));
+	//if (r != j.end())
+	//{
+	//	info = "fieldName already exists";
+	//	success = false;
+	//	return;
+	//}
 	nlohmann::json j_T;
 	serialize(property, propertyPtr, success, info, j_T, depth);
 
 	nlohmann::json::iterator it = j_T.begin();
 
-	j[FString_To_stdstring(fieldName)] = it.value();
+	//j[FString_To_stdstring(fieldName)] = it.value();
+
+	nlohmann::json* j_Ptr = nullptr;
+	FString lastFieldName;
+
+	if (pathCheck(j, fieldName, j_Ptr, lastFieldName, true) == false)
+	{
+		info = "Field error";
+		success = false;
+		return;
+	}
+	else if (j_Ptr == nullptr)
+	{
+		info = "Field error";
+		success = false;
+		return;
+	}
+
+	if (fieldName_check(*j_Ptr, lastFieldName))
+	{
+		info = "fieldName already exists";
+		success = false;
+		return;
+	}
+
+	(*j_Ptr)[FString_To_stdstring(lastFieldName)] = it.value();
 
 	std::ostringstream o;
 	o << j;
@@ -291,19 +464,36 @@ void UUnrealJSONBPLibrary::Generic_UpdateField(const FString& json, const FStrin
 		j = nlohmann::json::parse(FString_To_stdstring(json));
 	}
 
-	auto r = j.find(FString_To_stdstring(fieldName));
-	if (r == j.end())
-	{
-		info = "fieldName not exists";
-		success = false;
-		return;
-	}
+	//auto r = j.find(FString_To_stdstring(fieldName));
+	//if (r == j.end())
+	//{
+	//	info = "fieldName not exists";
+	//	success = false;
+	//	return;
+	//}
 	nlohmann::json j_T;
 	serialize(property, propertyPtr, success, info, j_T, depth);
 
 	nlohmann::json::iterator it = j_T.begin();
 
-	j[FString_To_stdstring(fieldName)] = it.value();
+	//j[FString_To_stdstring(fieldName)] = it.value();
+	nlohmann::json* j_Ptr = nullptr;
+	FString lastFieldName;
+
+	if (pathCheck(j, fieldName, j_Ptr, lastFieldName) == false)
+	{
+		info = "Field error";
+		success = false;
+		return;
+	}
+	else if (j_Ptr == nullptr)
+	{
+		info = "Field error";
+		success = false;
+		return;
+	}
+
+	(*j_Ptr) = it.value();
 
 	std::ostringstream o;
 	o << j;
@@ -1491,11 +1681,73 @@ std::string UUnrealJSONBPLibrary::escapeCharacterProcessing(const std::string& s
 
 bool UUnrealJSONBPLibrary::fieldName_check(const nlohmann::json& j, const FString& fieldName)
 {
-	auto r = j.find(FString_To_stdstring(fieldName));
-	if (r == j.end())
+	if (j.is_object())
+	{
+		auto r = j.find(FString_To_stdstring(fieldName));
+		if (r == j.end())
+		{
+			return false;
+		}
+	}
+	else if (j.is_array())
+	{
+		if (fieldName.IsNumeric())
+		{
+			int32 index = FCString::Atoi(*fieldName);
+			if (index >= j.size())
+			{
+				return false;
+			}
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool UUnrealJSONBPLibrary::pathCheck(nlohmann::json& j, const FString& fieldName, nlohmann::json*& j_Ptr, FString& lastFieldName, bool retain)
+{
+	TArray<FString> fieldNameArray;
+	if (analyticalSeparator(fieldName, fieldNameArray) == false)
 	{
 		return false;
 	}
+
+	j_Ptr = &j;
+
+	int retain_index = retain ? 1 : 0;
+
+	if (retain && fieldNameArray.Num() > 0)
+	{
+		lastFieldName = fieldNameArray[fieldNameArray.Num() - 1];
+	}
+
+	for (auto i = 0; i < fieldNameArray.Num() - retain_index; i++)
+	{
+		if (fieldName_check(*j_Ptr, fieldNameArray[i]) == false)
+		{
+			return false;
+		}
+
+		if (j_Ptr->is_object())
+		{
+			j_Ptr = &((*j_Ptr)[FString_To_stdstring(fieldNameArray[i])]);
+		}
+		else if (j_Ptr->is_array())
+		{
+			j_Ptr = &((*j_Ptr)[FCString::Atoi(*fieldNameArray[i])]);
+		}
+		else
+		{
+			return false;
+		}
+		
+	}
+
+	//*j_Ptr = it.value();
 
 	return true;
 }

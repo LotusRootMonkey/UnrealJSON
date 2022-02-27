@@ -60,6 +60,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "JSON Tools")
 		static void DeleteField(const FString& json, const FString& fieldName, bool& success, FString& info, FString& result);
 
+	UFUNCTION(BlueprintCallable, Category = "JSON Tools")
+		static bool analyticalSeparator(const FString& fieldName, TArray<FString>& fieldNameArray);
+
+	UFUNCTION(BlueprintCallable, Category = "JSON Tools")
+		static bool generationSeparator(const TArray<FString>& fieldNameArray, FString& fieldName);
+
 private:
 	DECLARE_FUNCTION(execT_TO_JSON)
 	{
@@ -138,6 +144,8 @@ private:
 	static FString stdstring_To_FString(const std::string& s);
 	static std::string escapeCharacterProcessing(const std::string& s);
 	static bool fieldName_check(const nlohmann::json& j, const FString& fieldName);
+
+	static bool pathCheck(nlohmann::json& j, const FString& fieldName, nlohmann::json*& j_Ptr, FString& lastFieldName, bool retain = false);
 };
 
 //UENUM(BlueprintType)
