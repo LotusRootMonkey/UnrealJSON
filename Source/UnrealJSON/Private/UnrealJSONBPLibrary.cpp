@@ -1153,6 +1153,13 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 
 				StrProperty->SetPropertyValue(propertyPtr, stdstring_To_FString(o.str()));
 			}
+			else if (j.type() == nlohmann::json::value_t::number_float || j.type() == nlohmann::json::value_t::number_integer || j.type() == nlohmann::json::value_t::number_unsigned || j.type() == nlohmann::json::value_t::boolean)
+			{
+				std::ostringstream o;
+				o << j;
+
+				StrProperty->SetPropertyValue(propertyPtr, stdstring_To_FString(o.str()));
+			}
 			else
 			{
 				success = false;
@@ -1174,6 +1181,13 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 				StrProperty->SetPropertyValue(propertyPtr, stdstring_To_FString(j_T));
 			}
 			else if (j.type() == nlohmann::json::value_t::object)
+			{
+				std::ostringstream o;
+				o << j;
+
+				StrProperty->SetPropertyValue(propertyPtr, stdstring_To_FString(o.str()));
+			}
+			else if (j.type() == nlohmann::json::value_t::number_float || j.type() == nlohmann::json::value_t::number_integer || j.type() == nlohmann::json::value_t::number_unsigned || j.type() == nlohmann::json::value_t::boolean)
 			{
 				std::ostringstream o;
 				o << j;
