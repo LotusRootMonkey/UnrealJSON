@@ -11,8 +11,11 @@
 		* 3.1.1. [层级](#-1)
 		* 3.1.2. [层级分隔符 -](#-)
 		* 3.1.3. [转义 #](#-1)
-		* 3.1.4. [analyticalSeparator](#analyticalSeparator)
-		* 3.1.5. [generationSeparator](#generationSeparator)
+	* 3.2. [工具](#-1)
+		* 3.2.1. [analyticalSeparator](#analyticalSeparator)
+		* 3.2.2. [generationSeparator](#generationSeparator)
+	* 3.3. [注意](#-1)
+		* 3.3.1. [上述接口的fieldName都支持使用层级分隔符来定位](#fieldName)
 * 4. [支持的平台](#-1)
 	* 4.1. [Win64](#Win64)
 * 5. [尚未解决的问题](#-1)
@@ -153,23 +156,23 @@ UMyObject1::UMyObject1()
     "年龄": 18,
     "家庭成员": [
         {
-            "姓名": "铁蛋亲爹",
+            "姓名": "铁蛋老爹",
             "年龄": 42
         },
         {
-            "姓名": "铁蛋亲妈",
+            "姓名": "铁蛋老妈",
             "年龄": 42
         },
         {
-            "姓名": "铁蛋后妈",
-            "年龄": 40
+            "姓名": "铁蛋弟弟",
+            "年龄": 15
         }
     ]
 }
 ```
 ####  3.1.2. <a name='-'></a>层级分隔符 -
-很显然如果我们想定位到铁蛋后妈的年龄，那么就需要层级分隔符在遍历过程中来作为进入一个层级的标志
-我们用这样的字符串，就可以精确的定位到铁蛋后妈的年龄了，很显然，只需要加一个减号
+很显然如果我们想定位到铁蛋弟弟的年龄，那么就需要层级分隔符在遍历过程中来作为进入一个层级的标志
+我们用这样的字符串，就可以精确的定位到铁蛋弟弟的年龄了，很显然，只需要加一个减号
 ```cpp
 "家庭成员-2-年龄"
 ```
@@ -181,23 +184,23 @@ UMyObject1::UMyObject1()
 |##|#|
 |#-|-|
 
-此时若想定位到铁蛋亲妈的年龄
+此时若想定位到铁蛋老妈的年龄
 ```cpp
 {
     "姓名": "铁蛋",
     "年龄": 18,
     "家庭成员": [
         {
-            "姓名": "铁蛋亲爹",
+            "姓名": "铁蛋老爹",
             "年龄": 42
         },
         {
-            "姓名": "铁蛋亲妈",
+            "姓名": "铁蛋老妈",
             "-#年龄": 42
         },
         {
-            "姓名": "铁蛋后妈",
-            "#-#-##--##--年龄-#-#": 40
+            "姓名": "铁蛋弟弟",
+            "#-#-##--##--年龄-#-#": 15
         }
     ]
 }
@@ -206,23 +209,26 @@ UMyObject1::UMyObject1()
 ```cpp
 "家庭成员-1-#-##年龄"
 ```
-如果像定位后妈的年龄，稍微复杂一点点
+如果像定位弟弟的年龄，稍微复杂一点点
 ```cpp
 "家庭成员-2-###-###-#####-#-#####-#-年龄#-###-##"
 ```
+###  3.2. <a name='-1'></a>工具
 可能你想说，这样的转义难以理解，也容易拼错，那么这里提供两个工具
-####  3.1.4. <a name='analyticalSeparator'></a>analyticalSeparator
+####  3.2.1. <a name='analyticalSeparator'></a>analyticalSeparator
 |参数|参数解释|
 |:-:|:-:|
 |const FString& fieldName|要操作的字段名，支持层级分隔符|
 |TArray<FString>& fieldNameArray|根据层级分隔符切分|
 ![analyticalSeparator](./markdown/gif/analyticalSeparator.webp)
-####  3.1.5. <a name='generationSeparator'></a>generationSeparator
+####  3.2.2. <a name='generationSeparator'></a>generationSeparator
 |参数|参数解释|
 |:-:|:-:|
 |const TArray<FString>& fieldNameArra|每一层的键|
 |FString& fieldName|根据层级分隔符拼接后的完整字段名|
 ![generationSeparator](./markdown/gif/generationSeparator.webp)
+###  3.3. <a name='-1'></a>注意
+####  3.3.1. <a name='fieldName'></a>上述接口的fieldName都支持使用层级分隔符来定位
 ##  4. <a name='-1'></a>支持的平台
 ###  4.1. <a name='Win64'></a>Win64
 ##  5. <a name='-1'></a>尚未解决的问题
