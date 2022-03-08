@@ -930,7 +930,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 
 	if (BoolProperty)
 	{
-		if (count == 0 || type == UUnrealJSONBPLibrary::Type::mapKeyType || type == UUnrealJSONBPLibrary::Type::mapValueType || type == UUnrealJSONBPLibrary::Type::setType)
+		if (count == 0 || type == UUnrealJSONBPLibrary::Type::mapKeyType || type == UUnrealJSONBPLibrary::Type::mapValueType || type == UUnrealJSONBPLibrary::Type::setType || type == UUnrealJSONBPLibrary::Type::arrayType)
 		{
 			if (j.type() == nlohmann::json::value_t::boolean || j.type() == nlohmann::json::value_t::null)
 			{
@@ -965,7 +965,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 	}
 	else if (ByteProperty)
 	{
-		if (count == 0 || type == UUnrealJSONBPLibrary::Type::mapKeyType || type == UUnrealJSONBPLibrary::Type::mapValueType || type == UUnrealJSONBPLibrary::Type::setType)
+		if (count == 0 || type == UUnrealJSONBPLibrary::Type::mapKeyType || type == UUnrealJSONBPLibrary::Type::mapValueType || type == UUnrealJSONBPLibrary::Type::setType || type == UUnrealJSONBPLibrary::Type::arrayType)
 		{
 			if (j.type() == nlohmann::json::value_t::number_unsigned || j.type() == nlohmann::json::value_t::number_integer || j.type() == nlohmann::json::value_t::null)
 			{
@@ -1000,7 +1000,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 	}
 	else if (IntProperty)
 	{
-		if (count == 0 || type == UUnrealJSONBPLibrary::Type::mapKeyType || type == UUnrealJSONBPLibrary::Type::mapValueType || type == UUnrealJSONBPLibrary::Type::setType)
+		if (count == 0 || type == UUnrealJSONBPLibrary::Type::mapKeyType || type == UUnrealJSONBPLibrary::Type::mapValueType || type == UUnrealJSONBPLibrary::Type::setType || type == UUnrealJSONBPLibrary::Type::arrayType)
 		{
 			if (j.type() == nlohmann::json::value_t::number_unsigned || j.type() == nlohmann::json::value_t::number_integer || j.type() == nlohmann::json::value_t::null)
 			{
@@ -1035,7 +1035,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 	}
 	else if (Int64Property)
 	{
-		if (count == 0 || type == UUnrealJSONBPLibrary::Type::mapKeyType || type == UUnrealJSONBPLibrary::Type::mapValueType || type == UUnrealJSONBPLibrary::Type::setType)
+		if (count == 0 || type == UUnrealJSONBPLibrary::Type::mapKeyType || type == UUnrealJSONBPLibrary::Type::mapValueType || type == UUnrealJSONBPLibrary::Type::setType || type == UUnrealJSONBPLibrary::Type::arrayType)
 		{
 			if (j.type() == nlohmann::json::value_t::number_unsigned || j.type() == nlohmann::json::value_t::number_integer || j.type() == nlohmann::json::value_t::null)
 			{
@@ -1070,7 +1070,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 	}
 	else if (FloatProperty)
 	{
-		if (count == 0 || type == UUnrealJSONBPLibrary::Type::mapKeyType || type == UUnrealJSONBPLibrary::Type::mapValueType || type == UUnrealJSONBPLibrary::Type::setType)
+		if (count == 0 || type == UUnrealJSONBPLibrary::Type::mapKeyType || type == UUnrealJSONBPLibrary::Type::mapValueType || type == UUnrealJSONBPLibrary::Type::setType || type == UUnrealJSONBPLibrary::Type::arrayType)
 		{
 			if (j.type() == nlohmann::json::value_t::number_unsigned || j.type() == nlohmann::json::value_t::number_integer || j.type() == nlohmann::json::value_t::number_float || j.type() == nlohmann::json::value_t::null)
 			{
@@ -1105,7 +1105,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 	}
 	else if (NameProperty)
 	{
-		if (count == 0 || type == UUnrealJSONBPLibrary::Type::mapKeyType || type == UUnrealJSONBPLibrary::Type::mapValueType || type == UUnrealJSONBPLibrary::Type::setType)
+		if (count == 0 || type == UUnrealJSONBPLibrary::Type::mapKeyType || type == UUnrealJSONBPLibrary::Type::mapValueType || type == UUnrealJSONBPLibrary::Type::setType || type == UUnrealJSONBPLibrary::Type::arrayType)
 		{
 			if (j.type() == nlohmann::json::value_t::string || j.type() == nlohmann::json::value_t::null)
 			{
@@ -1140,7 +1140,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 	}
 	else if (StrProperty)
 	{
-		if (count == 0 || type == UUnrealJSONBPLibrary::Type::mapKeyType || type == UUnrealJSONBPLibrary::Type::mapValueType || type == UUnrealJSONBPLibrary::Type::setType)
+	if (count == 0 || type == UUnrealJSONBPLibrary::Type::mapKeyType || type == UUnrealJSONBPLibrary::Type::mapValueType || type == UUnrealJSONBPLibrary::Type::setType || type == UUnrealJSONBPLibrary::Type::arrayType)
 		{
 			if (j.type() == nlohmann::json::value_t::string || j.type() == nlohmann::json::value_t::null)
 			{
@@ -1203,7 +1203,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 	}
 	else if (TextProperty)
 	{
-		if (count == 0 || type == UUnrealJSONBPLibrary::Type::mapKeyType || type == UUnrealJSONBPLibrary::Type::mapValueType || type == UUnrealJSONBPLibrary::Type::setType)
+		if (count == 0 || type == UUnrealJSONBPLibrary::Type::mapKeyType || type == UUnrealJSONBPLibrary::Type::mapValueType || type == UUnrealJSONBPLibrary::Type::setType || type == UUnrealJSONBPLibrary::Type::arrayType)
 		{
 			if (j.type() == nlohmann::json::value_t::string || j.type() == nlohmann::json::value_t::null)
 			{
@@ -1238,7 +1238,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 	}
 	else if (StructProperty)
 	{
-		if (count == 0 || type == UUnrealJSONBPLibrary::Type::mapKeyType || type == UUnrealJSONBPLibrary::Type::mapValueType || type == UUnrealJSONBPLibrary::Type::setType)
+		if (count == 0 || type == UUnrealJSONBPLibrary::Type::mapKeyType || type == UUnrealJSONBPLibrary::Type::mapValueType || type == UUnrealJSONBPLibrary::Type::setType || type == UUnrealJSONBPLibrary::Type::arrayType)
 		{
 			if (j.type() == nlohmann::json::value_t::object || j.type() == nlohmann::json::value_t::null)
 			{
@@ -1281,7 +1281,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 	}
 	else if (ObjectProperty)
 	{
-		if (count == 0 || type == UUnrealJSONBPLibrary::Type::mapKeyType || type == UUnrealJSONBPLibrary::Type::mapValueType || type == UUnrealJSONBPLibrary::Type::setType)
+		if (count == 0 || type == UUnrealJSONBPLibrary::Type::mapKeyType || type == UUnrealJSONBPLibrary::Type::mapValueType || type == UUnrealJSONBPLibrary::Type::setType || type == UUnrealJSONBPLibrary::Type::arrayType)
 		{
 			if (j.type() == nlohmann::json::value_t::object || j.type() == nlohmann::json::value_t::null)
 			{
@@ -1340,7 +1340,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 	}
 	else if (ArrayProperty)
 	{
-		if (count == 0 || type == UUnrealJSONBPLibrary::Type::mapKeyType || type == UUnrealJSONBPLibrary::Type::mapValueType || type == UUnrealJSONBPLibrary::Type::setType)
+		if (count == 0 || type == UUnrealJSONBPLibrary::Type::mapKeyType || type == UUnrealJSONBPLibrary::Type::mapValueType || type == UUnrealJSONBPLibrary::Type::setType || type == UUnrealJSONBPLibrary::Type::arrayType)
 		{
 			if (j.type() == nlohmann::json::value_t::array || j.type() == nlohmann::json::value_t::null)
 			{
@@ -1356,7 +1356,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 					const int32 itemSize = ArrayProperty->Inner->ElementSize;
 					uint8* itemAddr = (uint8*)FMemory::Malloc(itemSize);
 					FMemory::Memzero(itemAddr, itemSize);
-					deserialize(j_T, ArrayProperty->Inner, itemAddr, success, info, depth, UUnrealJSONBPLibrary::Type::other, {}, count + 1);
+					deserialize(j_T, ArrayProperty->Inner, itemAddr, success, info, depth, UUnrealJSONBPLibrary::Type::arrayType, {}, count + 1);
 					UKismetArrayLibrary::GenericArray_Set(propertyPtr, ArrayProperty, index, itemAddr, true);
 					FMemory::Free(itemAddr);
 				}
@@ -1405,7 +1405,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 	}
 	else if (EnumProperty)
 	{
-		if (count == 0 || type == UUnrealJSONBPLibrary::Type::mapKeyType || type == UUnrealJSONBPLibrary::Type::mapValueType || type == UUnrealJSONBPLibrary::Type::setType)
+		if (count == 0 || type == UUnrealJSONBPLibrary::Type::mapKeyType || type == UUnrealJSONBPLibrary::Type::mapValueType || type == UUnrealJSONBPLibrary::Type::setType || type == UUnrealJSONBPLibrary::Type::arrayType)
 		{
 			if (j.type() == nlohmann::json::value_t::string || j.type() == nlohmann::json::value_t::null)
 			{
@@ -1445,7 +1445,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 	}
 	else if (MapProperty)
 	{
-		if (count == 0 || type == UUnrealJSONBPLibrary::Type::mapKeyType || type == UUnrealJSONBPLibrary::Type::mapValueType || type == UUnrealJSONBPLibrary::Type::setType)
+		if (count == 0 || type == UUnrealJSONBPLibrary::Type::mapKeyType || type == UUnrealJSONBPLibrary::Type::mapValueType || type == UUnrealJSONBPLibrary::Type::setType || type == UUnrealJSONBPLibrary::Type::arrayType)
 		{
 			if (j.type() == nlohmann::json::value_t::object || j.type() == nlohmann::json::value_t::null)
 			{
@@ -1557,7 +1557,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 	}
 	else if (SetProperty)
 	{
-		if (count == 0 || type == UUnrealJSONBPLibrary::Type::mapKeyType || type == UUnrealJSONBPLibrary::Type::mapValueType || type == UUnrealJSONBPLibrary::Type::setType)
+		if (count == 0 || type == UUnrealJSONBPLibrary::Type::mapKeyType || type == UUnrealJSONBPLibrary::Type::mapValueType || type == UUnrealJSONBPLibrary::Type::setType || type == UUnrealJSONBPLibrary::Type::arrayType)
 		{
 			if (j.type() == nlohmann::json::value_t::object || j.type() == nlohmann::json::value_t::null)
 			{
