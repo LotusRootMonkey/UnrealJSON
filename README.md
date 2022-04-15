@@ -63,6 +63,7 @@
 |FString& info|附加信息|如果失败，则附加信息会说明失败原因|
 |FString& result|输出json字符串|新增字段后的json字符串|
 |int32 depth = 10|展开深度|可能会存在耦合形成闭环的情况，将会导致无限展开，因此设置展开深度，遍历节点的过程中，当某节点达到深度后，该节点不再展开解析|
+|bool keepJsonObject = true|保持json对象|如果T是字符串，且keepJsonObject==true，则会将T解析为JsonObject进行add，否则作为字符串进行add|
 
 ![AddField示例](./markdown/gif/AddField1.webp)
 ```cpp

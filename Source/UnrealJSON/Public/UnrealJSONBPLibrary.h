@@ -52,7 +52,7 @@ public:
 		static void JSON_TO_T(const FString& json, FString fieldName, int32& T, bool& success, FString& info, int32 depth = 10);
 
 	UFUNCTION(BlueprintCallable, CustomThunk, meta = (CustomStructureParam = "T"), Category = "JSON Tools")
-		static void AddField(const FString& json, const FString& fieldName, const int32& T, bool& success, FString& info, FString& result, int32 depth = 10);
+		static void AddField(const FString& json, const FString& fieldName, const int32& T, bool& success, FString& info, FString& result, int32 depth = 10, bool keepJsonObject = false);
 
 	UFUNCTION(BlueprintCallable, CustomThunk, meta = (CustomStructureParam = "T"), Category = "JSON Tools")
 		static void UpdateField(const FString& json, const FString& fieldName, const int32& T, bool& success, FString& info, FString& result, int32 depth = 10);
@@ -109,9 +109,10 @@ private:
 		P_GET_PROPERTY_REF(FStrProperty, Z_Param_Out_info);
 		P_GET_PROPERTY_REF(FStrProperty, Z_Param_Out_result);
 		P_GET_PROPERTY(FIntProperty, Z_Param_depth);
+		P_GET_UBOOL(Z_Param_Out_keepJsonObject);
 		P_FINISH;
 		P_NATIVE_BEGIN;
-		Generic_AddField(Z_Param_json, Z_Param_fieldName, property, propertyPtr, Z_Param_Out_success, Z_Param_Out_info, Z_Param_Out_result, Z_Param_depth);
+		Generic_AddField(Z_Param_json, Z_Param_fieldName, property, propertyPtr, Z_Param_Out_success, Z_Param_Out_info, Z_Param_Out_result, Z_Param_depth, Z_Param_Out_keepJsonObject);
 		P_NATIVE_END;
 	}
 
@@ -134,7 +135,7 @@ private:
 
 	static void Generic_T_TO_JSON(FProperty* property, void* propertyPtr, FString& json, bool& success, FString& info, int32 depth = 10);
 	static void Generic_JSON_TO_T(const FString& json, FString fieldName, FProperty* property, void* propertyPtr, bool& success, FString& info, int32 depth = 10);
-	static void Generic_AddField(const FString& json, const FString& fieldName, FProperty* property, void* propertyPtr, bool& success, FString& info, FString& result, int32 depth = 10);
+	static void Generic_AddField(const FString& json, const FString& fieldName, FProperty* property, void* propertyPtr, bool& success, FString& info, FString& result, int32 depth = 10, bool keepJsonObject = false);
 	static void Generic_UpdateField(const FString& json, const FString& fieldName, FProperty* property, void* propertyPtr, bool& success, FString& info, FString& result, int32 depth = 10);
 
 	static void serialize(FProperty* property, void* propertyPtr, bool& success, FString& info, nlohmann::json& j, int32 depth = 10, UUnrealJSONBPLibrary::Type type = UUnrealJSONBPLibrary::Type::other, nlohmann::json j_mapKey = {}, int32 count = 0);

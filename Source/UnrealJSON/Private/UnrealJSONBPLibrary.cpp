@@ -355,7 +355,7 @@ void UUnrealJSONBPLibrary::Generic_JSON_TO_T(const FString& json, FString fieldN
 	}
 }
 
-void UUnrealJSONBPLibrary::Generic_AddField(const FString& json, const FString& fieldName, FProperty* property, void* propertyPtr, bool& success, FString& info, FString& result, int32 depth)
+void UUnrealJSONBPLibrary::Generic_AddField(const FString& json, const FString& fieldName, FProperty* property, void* propertyPtr, bool& success, FString& info, FString& result, int32 depth, bool keepJsonObject)
 {
 	success = true;
 
@@ -419,12 +419,47 @@ void UUnrealJSONBPLibrary::Generic_AddField(const FString& json, const FString& 
 
 	if (fieldName_check(*j_Ptr, lastFieldName))
 	{
-		info = "fieldName already exists";
-		success = false;
-		return;
+		if ((*j_Ptr)[FString_To_stdstring(lastFieldName)].is_array())
+		{
+		}
+		else
+		{
+			info = "fieldName already exists";
+			success = false;
+			return;
+		}
 	}
 
-	(*j_Ptr)[FString_To_stdstring(lastFieldName)] = it.value();
+	if (it.value().is_string() && keepJsonObject)
+	{
+		json_sax_acceptor<nlohmann::json> my_sax_object;
+		nlohmann::json j_object;
+
+		if (nlohmann::json::sax_parse(std::string(it.value()), &my_sax_object) == false)
+		{
+			info = stdstring_To_FString(Info::getInstance().getInfoString());
+			success = false;
+			return;
+		}
+		else
+		{
+			j_object = nlohmann::json::parse(std::string(it.value()));
+		}
+
+		if ((*j_Ptr)[FString_To_stdstring(lastFieldName)].is_array())
+		{
+			(*j_Ptr)[FString_To_stdstring(lastFieldName)].push_back(j_object);
+			//(*j_Ptr)[FString_To_stdstring(lastFieldName)].push_back(it.value());
+		}
+		else
+		{
+			(*j_Ptr)[FString_To_stdstring(lastFieldName)] = j_object;
+		}
+	}
+	else
+	{
+		(*j_Ptr)[FString_To_stdstring(lastFieldName)] = it.value();
+	}
 
 	std::ostringstream o;
 	o << j;
