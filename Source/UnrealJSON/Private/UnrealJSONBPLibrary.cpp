@@ -172,14 +172,22 @@ void UUnrealJSONBPLibrary::DeleteField(const FString& json, const FString& field
 		return;
 	}
 
-	if (fieldName_check(*j_Ptr, lastFieldName) == false)
+	UUnrealJSONBPLibrary::Type type_T;
+	if (fieldName_check(*j_Ptr, lastFieldName, type_T) == false)
 	{
 		info = "fieldName not exists";
 		success = false;
 		return;
 	}
 
-	j_Ptr->erase(FString_To_stdstring(lastFieldName));
+	if (type_T == UUnrealJSONBPLibrary::Type::arrayType)
+	{
+		j_Ptr->erase(FCString::Atoi(*lastFieldName));
+	}
+	else
+	{
+		j_Ptr->erase(FString_To_stdstring(lastFieldName));
+	}
 
 	std::ostringstream o;
 	o << j;
@@ -283,6 +291,7 @@ bool UUnrealJSONBPLibrary::generationSeparator(const TArray<FString>& fieldNameA
 				fieldName += fieldNameArray[i][j];
 			}
 		}
+
 		fieldName += "-";
 	}
 
@@ -294,11 +303,19 @@ bool UUnrealJSONBPLibrary::generationSeparator(const TArray<FString>& fieldNameA
 	return true;
 }
 
-void UUnrealJSONBPLibrary::Generic_T_TO_JSON(FProperty* property, void* propertyPtr, FString& json, bool& success, FString& info, int32 depth)
+void UUnrealJSONBPLibrary::Generic_T_TO_JSON(FString mainKey, FProperty* property, void* propertyPtr, FString& json, bool& success, FString& info, int32 depth)
 {
 	success = true;
 	nlohmann::json j;
-	serialize(property, propertyPtr, success, info, j, depth);
+
+	if (mainKey.IsEmpty())
+	{
+		serialize(property, propertyPtr, success, info, j, depth);
+	}
+	else
+	{
+		serialize(property, propertyPtr, success, info, j, depth, UUnrealJSONBPLibrary::Type::other, {}, 0, mainKey);
+	}
 
 	std::ostringstream o;
 	o << j;
@@ -417,9 +434,13 @@ void UUnrealJSONBPLibrary::Generic_AddField(const FString& json, const FString& 
 		return;
 	}
 
-	if (fieldName_check(*j_Ptr, lastFieldName))
+	UUnrealJSONBPLibrary::Type type_T;
+	if (fieldName_check(*j_Ptr, lastFieldName, type_T))
 	{
-		if ((*j_Ptr)[FString_To_stdstring(lastFieldName)].is_array())
+		//if ((*j_Ptr)[FString_To_stdstring(lastFieldName)].is_array())
+		//{
+		//}
+		if (j_Ptr->is_array())
 		{
 		}
 		else
@@ -446,10 +467,24 @@ void UUnrealJSONBPLibrary::Generic_AddField(const FString& json, const FString& 
 			j_object = nlohmann::json::parse(std::string(it.value()));
 		}
 
-		if ((*j_Ptr)[FString_To_stdstring(lastFieldName)].is_array())
+		if (type_T == UUnrealJSONBPLibrary::Type::arrayType)
 		{
-			(*j_Ptr)[FString_To_stdstring(lastFieldName)].push_back(j_object);
-			//(*j_Ptr)[FString_To_stdstring(lastFieldName)].push_back(it.value());
+			nlohmann::json::iterator iterator = j_Ptr->begin();
+			if (FCString::IsNumeric(*lastFieldName) == false)
+			{
+				info = "Field error";
+				success = false;
+				return;
+			}
+			int index = FCString::Atoi(*lastFieldName);
+			if (index > j_Ptr->size())
+			{
+				info = "Field error";
+				success = false;
+				return;
+			}
+			iterator = iterator + index;
+			j_Ptr->insert(iterator, j_object);
 		}
 		else
 		{
@@ -458,7 +493,29 @@ void UUnrealJSONBPLibrary::Generic_AddField(const FString& json, const FString& 
 	}
 	else
 	{
-		(*j_Ptr)[FString_To_stdstring(lastFieldName)] = it.value();
+		if (type_T == UUnrealJSONBPLibrary::Type::arrayType)
+		{
+			nlohmann::json::iterator iterator = j_Ptr->begin();
+			if (FCString::IsNumeric(*lastFieldName) == false)
+			{
+				info = "Field error";
+				success = false;
+				return;
+			}
+			int index = FCString::Atoi(*lastFieldName);
+			if (index > j_Ptr->size())
+			{
+				info = "Field error";
+				success = false;
+				return;
+			}
+			iterator = iterator + index;
+			j_Ptr->insert(iterator, it.value());
+		}
+		else
+		{
+			(*j_Ptr)[FString_To_stdstring(lastFieldName)] = it.value();
+		}
 	}
 
 	std::ostringstream o;
@@ -467,7 +524,7 @@ void UUnrealJSONBPLibrary::Generic_AddField(const FString& json, const FString& 
 	result = stdstring_To_FString(o.str());
 }
 
-void UUnrealJSONBPLibrary::Generic_UpdateField(const FString& json, const FString& fieldName, FProperty* property, void* propertyPtr, bool& success, FString& info, FString& result, int32 depth)
+void UUnrealJSONBPLibrary::Generic_UpdateField(const FString& json, const FString& fieldName, FProperty* property, void* propertyPtr, bool& success, FString& info, FString& result, int32 depth, bool keepJsonObject)
 {
 	success = true;
 
@@ -528,7 +585,28 @@ void UUnrealJSONBPLibrary::Generic_UpdateField(const FString& json, const FStrin
 		return;
 	}
 
-	(*j_Ptr) = it.value();
+	if (it.value().is_string() && keepJsonObject)
+	{
+		json_sax_acceptor<nlohmann::json> my_sax_object;
+		nlohmann::json j_object;
+
+		if (nlohmann::json::sax_parse(std::string(it.value()), &my_sax_object) == false)
+		{
+			info = stdstring_To_FString(Info::getInstance().getInfoString());
+			success = false;
+			return;
+		}
+		else
+		{
+			j_object = nlohmann::json::parse(std::string(it.value()));
+		}
+
+		(*j_Ptr) = j_object;
+	}
+	else
+	{
+		(*j_Ptr) = it.value();
+	}
 
 	std::ostringstream o;
 	o << j;
@@ -536,7 +614,7 @@ void UUnrealJSONBPLibrary::Generic_UpdateField(const FString& json, const FStrin
 	result = stdstring_To_FString(o.str());
 }
 
-void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, bool& success, FString& info, nlohmann::json& j, int32 depth, UUnrealJSONBPLibrary::Type type, nlohmann::json j_mapKey, int32 count)
+void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, bool& success, FString& info, nlohmann::json& j, int32 depth, UUnrealJSONBPLibrary::Type type, nlohmann::json j_mapKey, int32 count, FString mainKey)
 {
 	if (count >= depth)
 	{
@@ -579,7 +657,14 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 		}
 		else
 		{
-			j[FString_To_stdstring(BoolProperty->GetName())] = BoolValue;
+			if (mainKey.IsEmpty())
+			{
+				j[FString_To_stdstring(BoolProperty->GetName())] = BoolValue;
+			}
+			else
+			{
+				j[FString_To_stdstring(mainKey)] = BoolValue;
+			}
 		}
 	}
 	else if (ByteProperty)
@@ -603,7 +688,14 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 		}
 		else
 		{
-			j[FString_To_stdstring(ByteProperty->GetName())] = ByteValue;
+			if (mainKey.IsEmpty())
+			{
+				j[FString_To_stdstring(ByteProperty->GetName())] = ByteValue;
+			}
+			else
+			{
+				j[FString_To_stdstring(mainKey)] = ByteValue;
+			}
 		}
 	}
 	else if (IntProperty)
@@ -627,7 +719,14 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 		}
 		else
 		{
-			j[FString_To_stdstring(IntProperty->GetName())] = IntValue;
+			if (mainKey.IsEmpty())
+			{
+				j[FString_To_stdstring(IntProperty->GetName())] = IntValue;
+			}
+			else
+			{
+				j[FString_To_stdstring(mainKey)] = IntValue;
+			}
 		}
 	}
 	else if (Int64Property)
@@ -651,7 +750,14 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 		}
 		else
 		{
-			j[FString_To_stdstring(Int64Property->GetName())] = Int64Value;
+			if (mainKey.IsEmpty())
+			{
+				j[FString_To_stdstring(Int64Property->GetName())] = Int64Value;
+			}
+			else
+			{
+				j[FString_To_stdstring(mainKey)] = Int64Value;
+			}
 		}
 	}
 	else if (FloatProperty)
@@ -675,7 +781,14 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 		}
 		else
 		{
-			j[FString_To_stdstring(FloatProperty->GetName())] = FloatValue;
+			if (mainKey.IsEmpty())
+			{
+				j[FString_To_stdstring(FloatProperty->GetName())] = FloatValue;
+			}
+			else
+			{
+				j[FString_To_stdstring(mainKey)] = FloatValue;
+			}
 		}
 	}
 	else if (NameProperty)
@@ -699,7 +812,14 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 		}
 		else
 		{
-			j[FString_To_stdstring(NameProperty->GetName())] = FString_To_stdstring(NameValue.ToString());
+			if (mainKey.IsEmpty())
+			{
+				j[FString_To_stdstring(NameProperty->GetName())] = FString_To_stdstring(NameValue.ToString());
+			}
+			else
+			{
+				j[FString_To_stdstring(mainKey)] = FString_To_stdstring(NameValue.ToString());
+			}
 		}
 	}
 	else if (StrProperty)
@@ -723,7 +843,14 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 		}
 		else
 		{
-			j[FString_To_stdstring(StrProperty->GetName())] = FString_To_stdstring(StrValue);
+			if (mainKey.IsEmpty())
+			{
+				j[FString_To_stdstring(StrProperty->GetName())] = FString_To_stdstring(StrValue);
+			}
+			else
+			{
+				j[FString_To_stdstring(mainKey)] = FString_To_stdstring(StrValue);
+			}
 		}
 	}
 	else if (TextProperty)
@@ -747,7 +874,14 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 		}
 		else
 		{
-			j[FString_To_stdstring(TextProperty->GetName())] = FString_To_stdstring(TextValue.ToString());
+			if (mainKey.IsEmpty())
+			{
+				j[FString_To_stdstring(TextProperty->GetName())] = FString_To_stdstring(TextValue.ToString());
+			}
+			else
+			{
+				j[FString_To_stdstring(mainKey)] = FString_To_stdstring(TextValue.ToString());
+			}
 		}
 	}
 	else if (StructProperty)
@@ -783,7 +917,14 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 		}
 		else
 		{
-			j[FString_To_stdstring(StructProperty->GetName())] = j_T;
+			if (mainKey.IsEmpty())
+			{
+				j[FString_To_stdstring(StructProperty->GetName())] = j_T;
+			}
+			else
+			{
+				j[FString_To_stdstring(mainKey)] = j_T;
+			}
 		}
 	}
 	else if (ObjectProperty)
@@ -826,7 +967,14 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 		}
 		else
 		{
-			j[FString_To_stdstring(ObjectProperty->GetName())] = j_T;
+			if (mainKey.IsEmpty())
+			{
+				j[FString_To_stdstring(ObjectProperty->GetName())] = j_T;
+			}
+			else
+			{
+				j[FString_To_stdstring(mainKey)] = j_T;
+			}
 		}
 	}
 	else if (ArrayProperty)
@@ -846,7 +994,19 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 			FMemory::Free(itemAddr);
 		}
 
-		j[FString_To_stdstring(ArrayProperty->GetName())] = j_T;
+		if (j_T.is_null())
+		{
+			j_T = nlohmann::json::array();
+		}
+
+		if (mainKey.IsEmpty())
+		{
+			j[FString_To_stdstring(ArrayProperty->GetName())] = j_T;
+		}
+		else
+		{
+			j[FString_To_stdstring(mainKey)] = j_T;
+		}
 	}
 	else if (EnumProperty)
 	{
@@ -872,7 +1032,14 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 		}
 		else
 		{
-			j[FString_To_stdstring(EnumProperty->GetName())] = FString_To_stdstring(name);
+			if (mainKey.IsEmpty())
+			{
+				j[FString_To_stdstring(EnumProperty->GetName())] = FString_To_stdstring(name);
+			}
+			else
+			{
+				j[FString_To_stdstring(mainKey)] = FString_To_stdstring(name);
+			}
 		}
 	}
 	else if (MapProperty)
@@ -906,7 +1073,14 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 			}
 		}
 
-		j[FString_To_stdstring(MapProperty->GetName())] = j_T;
+		if (mainKey.IsEmpty())
+		{
+			j[FString_To_stdstring(MapProperty->GetName())] = j_T;
+		}
+		else
+		{
+			j[FString_To_stdstring(mainKey)] = j_T;
+		}
 	}
 	else if (SetProperty)
 	{
@@ -932,7 +1106,14 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 			}
 		}
 
-		j[FString_To_stdstring(SetProperty->GetName())] = j_T;
+		if (mainKey.IsEmpty())
+		{
+			j[FString_To_stdstring(SetProperty->GetName())] = j_T;
+		}
+		else
+		{
+			j[FString_To_stdstring(mainKey)] = j_T;
+		}
 	}
 	else
 	{
@@ -943,6 +1124,8 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 
 void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, void* propertyPtr, bool& success, FString& info, int32 depth, UUnrealJSONBPLibrary::Type type, nlohmann::json j_mapKey, int32 count)
 {
+	UUnrealJSONBPLibrary::Type type_T;
+
 	if (count >= depth)
 	{
 		return;
@@ -979,7 +1162,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 		}
 		else
 		{
-			if (!fieldName_check(j, BoolProperty->GetName()))
+			if (!fieldName_check(j, BoolProperty->GetName(), type_T))
 			{
 				info = "fieldName not exists";
 				success = false;
@@ -1014,7 +1197,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 		}
 		else
 		{
-			if (!fieldName_check(j, ByteProperty->GetName()))
+			if (!fieldName_check(j, ByteProperty->GetName(), type_T))
 			{
 				info = "fieldName not exists";
 				success = false;
@@ -1049,7 +1232,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 		}
 		else
 		{
-			if (!fieldName_check(j, IntProperty->GetName()))
+			if (!fieldName_check(j, IntProperty->GetName(), type_T))
 			{
 				info = "fieldName not exists";
 				success = false;
@@ -1084,7 +1267,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 		}
 		else
 		{
-			if (!fieldName_check(j, Int64Property->GetName()))
+			if (!fieldName_check(j, Int64Property->GetName(), type_T))
 			{
 				info = "fieldName not exists";
 				success = false;
@@ -1119,7 +1302,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 		}
 		else
 		{
-			if (!fieldName_check(j, FloatProperty->GetName()))
+			if (!fieldName_check(j, FloatProperty->GetName(), type_T))
 			{
 				info = "fieldName not exists";
 				success = false;
@@ -1154,7 +1337,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 		}
 		else
 		{
-			if (!fieldName_check(j, NameProperty->GetName()))
+			if (!fieldName_check(j, NameProperty->GetName(), type_T))
 			{
 				info = "fieldName not exists";
 				success = false;
@@ -1203,7 +1386,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 		}
 		else
 		{
-			if (!fieldName_check(j, StrProperty->GetName()))
+			if (!fieldName_check(j, StrProperty->GetName(), type_T))
 			{
 				info = "fieldName not exists";
 				success = false;
@@ -1252,7 +1435,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 		}
 		else
 		{
-			if (!fieldName_check(j, StrProperty->GetName()))
+			if (!fieldName_check(j, StrProperty->GetName(), type_T))
 			{
 				info = "fieldName not exists";
 				success = false;
@@ -1291,7 +1474,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 		}
 		else
 		{
-			if (!fieldName_check(j, StructProperty->GetName()))
+			if (!fieldName_check(j, StructProperty->GetName(), type_T))
 			{
 				info = "fieldName not exists";
 				success = false;
@@ -1342,7 +1525,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 		}
 		else
 		{
-			if (!fieldName_check(j, ObjectProperty->GetName()))
+			if (!fieldName_check(j, ObjectProperty->GetName(), type_T))
 			{
 				info = "fieldName not exists";
 				success = false;
@@ -1404,7 +1587,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 		}
 		else
 		{
-			if (!fieldName_check(j, ArrayProperty->GetName()))
+			if (!fieldName_check(j, ArrayProperty->GetName(), type_T))
 			{
 				info = "fieldName not exists";
 				success = false;
@@ -1459,7 +1642,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 		}
 		else
 		{
-			if (!fieldName_check(j, StrProperty->GetName()))
+			if (!fieldName_check(j, StrProperty->GetName(), type_T))
 			{
 				info = "fieldName not exists";
 				success = false;
@@ -1539,7 +1722,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 		}
 		else
 		{
-			if (!fieldName_check(j, MapProperty->GetName()))
+			if (!fieldName_check(j, MapProperty->GetName(), type_T))
 			{
 				info = "fieldName not exists";
 				success = false;
@@ -1624,7 +1807,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 		}
 		else
 		{
-			if (!fieldName_check(j, SetProperty->GetName()))
+			if (!fieldName_check(j, SetProperty->GetName(), type_T))
 			{
 				info = "fieldName not exists";
 				success = false;
@@ -1728,7 +1911,7 @@ std::string UUnrealJSONBPLibrary::escapeCharacterProcessing(const std::string& s
 	return std::move(s_T);
 }
 
-bool UUnrealJSONBPLibrary::fieldName_check(const nlohmann::json& j, const FString& fieldName)
+bool UUnrealJSONBPLibrary::fieldName_check(const nlohmann::json& j, const FString& fieldName, UUnrealJSONBPLibrary::Type& type)
 {
 	if (j.is_object())
 	{
@@ -1737,9 +1920,11 @@ bool UUnrealJSONBPLibrary::fieldName_check(const nlohmann::json& j, const FStrin
 		{
 			return false;
 		}
+		type = UUnrealJSONBPLibrary::Type::other;
 	}
 	else if (j.is_array())
 	{
+		type = UUnrealJSONBPLibrary::Type::arrayType;
 		if (fieldName.IsNumeric())
 		{
 			int32 index = FCString::Atoi(*fieldName);
@@ -1759,6 +1944,7 @@ bool UUnrealJSONBPLibrary::fieldName_check(const nlohmann::json& j, const FStrin
 
 bool UUnrealJSONBPLibrary::pathCheck(nlohmann::json& j, const FString& fieldName, nlohmann::json*& j_Ptr, FString& lastFieldName, bool retain)
 {
+	UUnrealJSONBPLibrary::Type type_T;
 	TArray<FString> fieldNameArray;
 	if (analyticalSeparator(fieldName, fieldNameArray) == false)
 	{
@@ -1776,7 +1962,7 @@ bool UUnrealJSONBPLibrary::pathCheck(nlohmann::json& j, const FString& fieldName
 
 	for (auto i = 0; i < fieldNameArray.Num() - retain_index; i++)
 	{
-		if (fieldName_check(*j_Ptr, fieldNameArray[i]) == false)
+		if (fieldName_check(*j_Ptr, fieldNameArray[i], type_T) == false)
 		{
 			return false;
 		}
@@ -1793,7 +1979,6 @@ bool UUnrealJSONBPLibrary::pathCheck(nlohmann::json& j, const FString& fieldName
 		{
 			return false;
 		}
-		
 	}
 
 	//*j_Ptr = it.value();
