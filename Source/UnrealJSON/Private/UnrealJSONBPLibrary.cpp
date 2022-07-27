@@ -1915,12 +1915,12 @@ bool UUnrealJSONBPLibrary::fieldName_check(const nlohmann::json& j, const FStrin
 {
 	if (j.is_object())
 	{
+		type = UUnrealJSONBPLibrary::Type::other;
 		auto r = j.find(FString_To_stdstring(fieldName));
 		if (r == j.end())
 		{
 			return false;
 		}
-		type = UUnrealJSONBPLibrary::Type::other;
 	}
 	else if (j.is_array())
 	{
