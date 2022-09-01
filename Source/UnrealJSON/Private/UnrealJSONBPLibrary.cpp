@@ -1,4 +1,4 @@
-#include "UnrealJSONBPLibrary.h"
+﻿#include "UnrealJSONBPLibrary.h"
 #include "UnrealJSON.h"
 #include <sstream>
 #include "Kismet/KismetArrayLibrary.h"
@@ -1853,7 +1853,7 @@ std::string UUnrealJSONBPLibrary::FString_To_stdstring(const FString& s)
 
 FString UUnrealJSONBPLibrary::stdstring_To_FString(const std::string& s)
 {
-	return std::move(FString(s.c_str()));
+	return std::move(FString(UTF8_TO_TCHAR(s.c_str())));
 }
 
 std::string UUnrealJSONBPLibrary::escapeCharacterProcessing(const std::string& s)
