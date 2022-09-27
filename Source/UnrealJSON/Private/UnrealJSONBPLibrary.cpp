@@ -273,7 +273,7 @@ bool UUnrealJSONBPLibrary::generationSeparator(const TArray<FString>& fieldNameA
 	}
 
 	fieldName.Empty();
-	
+
 	for (auto i = 0; i < fieldNameArray.Num(); i++)
 	{
 		for (auto j = 0; j < fieldNameArray[i].Len(); j++)
@@ -303,18 +303,18 @@ bool UUnrealJSONBPLibrary::generationSeparator(const TArray<FString>& fieldNameA
 	return true;
 }
 
-void UUnrealJSONBPLibrary::Generic_T_TO_JSON(FString mainKey, FProperty* property, void* propertyPtr, FString& json, bool& success, FString& info, int32 depth)
+void UUnrealJSONBPLibrary::Generic_T_TO_JSON(FString mainKey, FProperty* property, void* propertyPtr, FString& json, bool& success, FString& info, int32 depth, bool lowercaseID)
 {
 	success = true;
 	nlohmann::json j;
 
 	if (mainKey.IsEmpty())
 	{
-		serialize(property, propertyPtr, success, info, j, depth);
+		serialize(property, propertyPtr, success, info, j, depth, lowercaseID);
 	}
 	else
 	{
-		serialize(property, propertyPtr, success, info, j, depth, UUnrealJSONBPLibrary::Type::other, {}, 0, mainKey);
+		serialize(property, propertyPtr, success, info, j, depth, lowercaseID, UUnrealJSONBPLibrary::Type::other, {}, 0, mainKey);
 	}
 
 	std::ostringstream o;
@@ -323,7 +323,7 @@ void UUnrealJSONBPLibrary::Generic_T_TO_JSON(FString mainKey, FProperty* propert
 	json = stdstring_To_FString(o.str());
 }
 
-void UUnrealJSONBPLibrary::Generic_JSON_TO_T(const FString& json, FString fieldName, FProperty* property, void* propertyPtr, bool& success, FString& info, int32 depth)
+void UUnrealJSONBPLibrary::Generic_JSON_TO_T(const FString& json, FString fieldName, FProperty* property, void* propertyPtr, bool& success, FString& info, int32 depth, bool lowercaseID)
 {
 	success = true;
 	json_sax_acceptor<nlohmann::json> my_sax;
@@ -338,7 +338,7 @@ void UUnrealJSONBPLibrary::Generic_JSON_TO_T(const FString& json, FString fieldN
 		auto j = nlohmann::json::parse(FString_To_stdstring(json));
 		if (fieldName.IsEmpty())
 		{
-			deserialize(j, property, propertyPtr, success, info, depth);
+			deserialize(j, property, propertyPtr, success, info, depth, lowercaseID);
 		}
 		else
 		{
@@ -358,7 +358,7 @@ void UUnrealJSONBPLibrary::Generic_JSON_TO_T(const FString& json, FString fieldN
 				return;
 			}
 
-			deserialize(*j_Ptr, property, propertyPtr, success, info, depth);
+			deserialize(*j_Ptr, property, propertyPtr, success, info, depth, lowercaseID);
 
 			//auto r = j.find(FString_To_stdstring(fieldName));
 			//if (r == j.end())
@@ -372,7 +372,7 @@ void UUnrealJSONBPLibrary::Generic_JSON_TO_T(const FString& json, FString fieldN
 	}
 }
 
-void UUnrealJSONBPLibrary::Generic_AddField(const FString& json, const FString& fieldName, FProperty* property, void* propertyPtr, bool& success, FString& info, FString& result, int32 depth, bool keepJsonObject)
+void UUnrealJSONBPLibrary::Generic_AddField(const FString& json, const FString& fieldName, FProperty* property, void* propertyPtr, bool& success, FString& info, FString& result, int32 depth, bool keepJsonObject, bool lowercaseID)
 {
 	success = true;
 
@@ -412,7 +412,7 @@ void UUnrealJSONBPLibrary::Generic_AddField(const FString& json, const FString& 
 	//	return;
 	//}
 	nlohmann::json j_T;
-	serialize(property, propertyPtr, success, info, j_T, depth);
+	serialize(property, propertyPtr, success, info, j_T, depth, lowercaseID);
 
 	nlohmann::json::iterator it = j_T.begin();
 
@@ -524,7 +524,7 @@ void UUnrealJSONBPLibrary::Generic_AddField(const FString& json, const FString& 
 	result = stdstring_To_FString(o.str());
 }
 
-void UUnrealJSONBPLibrary::Generic_UpdateField(const FString& json, const FString& fieldName, FProperty* property, void* propertyPtr, bool& success, FString& info, FString& result, int32 depth, bool keepJsonObject)
+void UUnrealJSONBPLibrary::Generic_UpdateField(const FString& json, const FString& fieldName, FProperty* property, void* propertyPtr, bool& success, FString& info, FString& result, int32 depth, bool keepJsonObject, bool lowercaseID)
 {
 	success = true;
 
@@ -564,7 +564,7 @@ void UUnrealJSONBPLibrary::Generic_UpdateField(const FString& json, const FStrin
 	//	return;
 	//}
 	nlohmann::json j_T;
-	serialize(property, propertyPtr, success, info, j_T, depth);
+	serialize(property, propertyPtr, success, info, j_T, depth, lowercaseID);
 
 	nlohmann::json::iterator it = j_T.begin();
 
@@ -614,7 +614,7 @@ void UUnrealJSONBPLibrary::Generic_UpdateField(const FString& json, const FStrin
 	result = stdstring_To_FString(o.str());
 }
 
-void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, bool& success, FString& info, nlohmann::json& j, int32 depth, UUnrealJSONBPLibrary::Type type, nlohmann::json j_mapKey, int32 count, FString mainKey)
+void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, bool& success, FString& info, nlohmann::json& j, int32 depth, bool lowercaseID, UUnrealJSONBPLibrary::Type type, nlohmann::json j_mapKey, int32 count, FString mainKey)
 {
 	if (count >= depth)
 	{
@@ -659,7 +659,16 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 		{
 			if (mainKey.IsEmpty())
 			{
-				j[FString_To_stdstring(BoolProperty->GetName())] = BoolValue;
+				std::string name = FString_To_stdstring(BoolProperty->GetName());
+				if (lowercaseID)
+				{
+					if (name._Equal("ID"))
+					{
+						name = "id";
+					}
+				}
+
+				j[name] = BoolValue;
 			}
 			else
 			{
@@ -690,7 +699,15 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 		{
 			if (mainKey.IsEmpty())
 			{
-				j[FString_To_stdstring(ByteProperty->GetName())] = ByteValue;
+				std::string name = FString_To_stdstring(ByteProperty->GetName());
+				if (lowercaseID)
+				{
+					if (name._Equal("ID"))
+					{
+						name = "id";
+					}
+				}
+				j[name] = ByteValue;
 			}
 			else
 			{
@@ -721,7 +738,15 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 		{
 			if (mainKey.IsEmpty())
 			{
-				j[FString_To_stdstring(IntProperty->GetName())] = IntValue;
+				std::string name = FString_To_stdstring(IntProperty->GetName());
+				if (lowercaseID)
+				{
+					if (name._Equal("ID"))
+					{
+						name = "id";
+					}
+				}
+				j[name] = IntValue;
 			}
 			else
 			{
@@ -752,7 +777,15 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 		{
 			if (mainKey.IsEmpty())
 			{
-				j[FString_To_stdstring(Int64Property->GetName())] = Int64Value;
+				std::string name = FString_To_stdstring(Int64Property->GetName());
+				if (lowercaseID)
+				{
+					if (name._Equal("ID"))
+					{
+						name = "id";
+					}
+				}
+				j[name] = Int64Value;
 			}
 			else
 			{
@@ -783,7 +816,15 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 		{
 			if (mainKey.IsEmpty())
 			{
-				j[FString_To_stdstring(FloatProperty->GetName())] = FloatValue;
+				std::string name = FString_To_stdstring(FloatProperty->GetName());
+				if (lowercaseID)
+				{
+					if (name._Equal("ID"))
+					{
+						name = "id";
+					}
+				}
+				j[name] = FloatValue;
 			}
 			else
 			{
@@ -814,7 +855,15 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 		{
 			if (mainKey.IsEmpty())
 			{
-				j[FString_To_stdstring(NameProperty->GetName())] = FString_To_stdstring(NameValue.ToString());
+				std::string name = FString_To_stdstring(NameProperty->GetName());
+				if (lowercaseID)
+				{
+					if (name._Equal("ID"))
+					{
+						name = "id";
+					}
+				}
+				j[name] = FString_To_stdstring(NameValue.ToString());
 			}
 			else
 			{
@@ -845,7 +894,15 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 		{
 			if (mainKey.IsEmpty())
 			{
-				j[FString_To_stdstring(StrProperty->GetName())] = FString_To_stdstring(StrValue);
+				std::string name = FString_To_stdstring(StrProperty->GetName());
+				if (lowercaseID)
+				{
+					if (name._Equal("ID"))
+					{
+						name = "id";
+					}
+				}
+				j[name] = FString_To_stdstring(StrValue);
 			}
 			else
 			{
@@ -876,7 +933,15 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 		{
 			if (mainKey.IsEmpty())
 			{
-				j[FString_To_stdstring(TextProperty->GetName())] = FString_To_stdstring(TextValue.ToString());
+				std::string name = FString_To_stdstring(TextProperty->GetName());
+				if (lowercaseID)
+				{
+					if (name._Equal("ID"))
+					{
+						name = "id";
+					}
+				}
+				j[name] = FString_To_stdstring(TextValue.ToString());
 			}
 			else
 			{
@@ -892,7 +957,7 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 		{
 			auto param = it->ContainerPtrToValuePtr<void>(propertyPtr);
 
-			serialize(*it, param, success, info, j_T, depth, UUnrealJSONBPLibrary::Type::other, {}, count + 1);
+			serialize(*it, param, success, info, j_T, depth, lowercaseID, UUnrealJSONBPLibrary::Type::other, {}, count + 1);
 		}
 
 		if (type == UUnrealJSONBPLibrary::Type::arrayType)
@@ -919,7 +984,15 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 		{
 			if (mainKey.IsEmpty())
 			{
-				j[FString_To_stdstring(StructProperty->GetName())] = j_T;
+				std::string name = FString_To_stdstring(StructProperty->GetName());
+				if (lowercaseID)
+				{
+					if (name._Equal("ID"))
+					{
+						name = "id";
+					}
+				}
+				j[name] = j_T;
 			}
 			else
 			{
@@ -942,7 +1015,7 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 		{
 			auto param = it->ContainerPtrToValuePtr<void>(object);
 
-			serialize(*it, param, success, info, j_T, depth, UUnrealJSONBPLibrary::Type::other, {}, count + 1);
+			serialize(*it, param, success, info, j_T, depth, lowercaseID, UUnrealJSONBPLibrary::Type::other, {}, count + 1);
 		}
 
 		if (type == UUnrealJSONBPLibrary::Type::arrayType)
@@ -969,7 +1042,15 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 		{
 			if (mainKey.IsEmpty())
 			{
-				j[FString_To_stdstring(ObjectProperty->GetName())] = j_T;
+				std::string name = FString_To_stdstring(ObjectProperty->GetName());
+				if (lowercaseID)
+				{
+					if (name._Equal("ID"))
+					{
+						name = "id";
+					}
+				}
+				j[name] = j_T;
 			}
 			else
 			{
@@ -990,7 +1071,7 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 			FMemory::Memzero(itemAddr, itemSize);
 			UKismetArrayLibrary::GenericArray_Get(propertyPtr, ArrayProperty, index, itemAddr);
 
-			serialize(ArrayProperty->Inner, itemAddr, success, info, j_T, depth, UUnrealJSONBPLibrary::Type::arrayType, {}, count + 1);
+			serialize(ArrayProperty->Inner, itemAddr, success, info, j_T, depth, lowercaseID, UUnrealJSONBPLibrary::Type::arrayType, {}, count + 1);
 			FMemory::Free(itemAddr);
 		}
 
@@ -1001,7 +1082,15 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 
 		if (mainKey.IsEmpty())
 		{
-			j[FString_To_stdstring(ArrayProperty->GetName())] = j_T;
+			std::string name = FString_To_stdstring(ArrayProperty->GetName());
+			if (lowercaseID)
+			{
+				if (name._Equal("ID"))
+				{
+					name = "id";
+				}
+			}
+			j[name] = j_T;
 		}
 		else
 		{
@@ -1034,7 +1123,15 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 		{
 			if (mainKey.IsEmpty())
 			{
-				j[FString_To_stdstring(EnumProperty->GetName())] = FString_To_stdstring(name);
+				std::string name_t = FString_To_stdstring(EnumProperty->GetName());
+				if (lowercaseID)
+				{
+					if (name_t._Equal("ID"))
+					{
+						name_t = "id";
+					}
+				}
+				j[name_t] = FString_To_stdstring(name);
 			}
 			else
 			{
@@ -1065,8 +1162,8 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 				valueProp->CopyCompleteValueFromScriptVM(ValueAddr, MapHelper.GetValuePtr(i));
 
 				nlohmann::json j_map;
-				serialize(valueProp, ValueAddr, success, info, j_map, depth, UUnrealJSONBPLibrary::Type::mapValueType, {}, count + 1);
-				serialize(keyProp, keyAddr, success, info, j_T, depth, UUnrealJSONBPLibrary::Type::mapKeyType, j_map, count + 1);
+				serialize(valueProp, ValueAddr, success, info, j_map, depth, lowercaseID, UUnrealJSONBPLibrary::Type::mapValueType, {}, count + 1);
+				serialize(keyProp, keyAddr, success, info, j_T, depth, lowercaseID, UUnrealJSONBPLibrary::Type::mapKeyType, j_map, count + 1);
 
 				FMemory::Free(keyAddr);
 				FMemory::Free(ValueAddr);
@@ -1075,7 +1172,15 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 
 		if (mainKey.IsEmpty())
 		{
-			j[FString_To_stdstring(MapProperty->GetName())] = j_T;
+			std::string name = FString_To_stdstring(MapProperty->GetName());
+			if (lowercaseID)
+			{
+				if (name._Equal("ID"))
+				{
+					name = "id";
+				}
+			}
+			j[name] = j_T;
 		}
 		else
 		{
@@ -1100,7 +1205,7 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 				elementProp->CopyCompleteValueFromScriptVM(elementAddr, SetHelper.GetElementPtr(i));
 
 				nlohmann::json j_map;
-				serialize(elementProp, elementAddr, success, info, j_map, depth, UUnrealJSONBPLibrary::Type::setType, {}, count + 1);
+				serialize(elementProp, elementAddr, success, info, j_map, depth, lowercaseID, UUnrealJSONBPLibrary::Type::setType, {}, count + 1);
 
 				FMemory::Free(elementAddr);
 			}
@@ -1108,7 +1213,15 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 
 		if (mainKey.IsEmpty())
 		{
-			j[FString_To_stdstring(SetProperty->GetName())] = j_T;
+			std::string name = FString_To_stdstring(SetProperty->GetName());
+			if (lowercaseID)
+			{
+				if (name._Equal("ID"))
+				{
+					name = "id";
+				}
+			}
+			j[name] = j_T;
 		}
 		else
 		{
@@ -1122,7 +1235,7 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 	}
 }
 
-void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, void* propertyPtr, bool& success, FString& info, int32 depth, UUnrealJSONBPLibrary::Type type, nlohmann::json j_mapKey, int32 count)
+void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, void* propertyPtr, bool& success, FString& info, int32 depth, bool lowercaseID, UUnrealJSONBPLibrary::Type type, nlohmann::json j_mapKey, int32 count)
 {
 	UUnrealJSONBPLibrary::Type type_T;
 
@@ -1162,14 +1275,23 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 		}
 		else
 		{
-			if (!fieldName_check(j, BoolProperty->GetName(), type_T))
+			std::string name = FString_To_stdstring(BoolProperty->GetName());
+			if (lowercaseID)
+			{
+				if (name._Equal("ID"))
+				{
+					name = "id";
+				}
+			}
+
+			if (!fieldName_check(j, stdstring_To_FString(name), type_T))
 			{
 				info = "fieldName not exists";
 				success = false;
 				return;
 			}
 
-			nlohmann::json j_T = j[FString_To_stdstring(BoolProperty->GetName())];
+			nlohmann::json j_T = j[name];
 			if (j_T.type() == nlohmann::json::value_t::boolean || j_T.type() == nlohmann::json::value_t::null)
 			{
 				BoolProperty->SetPropertyValue(propertyPtr, j_T);
@@ -1197,14 +1319,23 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 		}
 		else
 		{
-			if (!fieldName_check(j, ByteProperty->GetName(), type_T))
+			std::string name = FString_To_stdstring(ByteProperty->GetName());
+			if (lowercaseID)
+			{
+				if (name._Equal("ID"))
+				{
+					name = "id";
+				}
+			}
+
+			if (!fieldName_check(j, stdstring_To_FString(name), type_T))
 			{
 				info = "fieldName not exists";
 				success = false;
 				return;
 			}
 
-			nlohmann::json j_T = j[FString_To_stdstring(ByteProperty->GetName())];
+			nlohmann::json j_T = j[name];
 			if (j_T.type() == nlohmann::json::value_t::number_unsigned || j_T.type() == nlohmann::json::value_t::number_integer || j_T.type() == nlohmann::json::value_t::null)
 			{
 				ByteProperty->SetPropertyValue(propertyPtr, j_T);
@@ -1232,14 +1363,23 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 		}
 		else
 		{
-			if (!fieldName_check(j, IntProperty->GetName(), type_T))
+			std::string name = FString_To_stdstring(IntProperty->GetName());
+			if (lowercaseID)
+			{
+				if (name._Equal("ID"))
+				{
+					name = "id";
+				}
+			}
+
+			if (!fieldName_check(j, stdstring_To_FString(name), type_T))
 			{
 				info = "fieldName not exists";
 				success = false;
 				return;
 			}
 
-			nlohmann::json j_T = j[FString_To_stdstring(IntProperty->GetName())];
+			nlohmann::json j_T = j[name];
 			if (j_T.type() == nlohmann::json::value_t::number_unsigned || j_T.type() == nlohmann::json::value_t::number_integer || j_T.type() == nlohmann::json::value_t::null)
 			{
 				IntProperty->SetPropertyValue(propertyPtr, j_T);
@@ -1267,14 +1407,23 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 		}
 		else
 		{
-			if (!fieldName_check(j, Int64Property->GetName(), type_T))
+			std::string name = FString_To_stdstring(Int64Property->GetName());
+			if (lowercaseID)
+			{
+				if (name._Equal("ID"))
+				{
+					name = "id";
+				}
+			}
+
+			if (!fieldName_check(j, stdstring_To_FString(name), type_T))
 			{
 				info = "fieldName not exists";
 				success = false;
 				return;
 			}
 
-			nlohmann::json j_T = j[FString_To_stdstring(Int64Property->GetName())];
+			nlohmann::json j_T = j[name];
 			if (j_T.type() == nlohmann::json::value_t::number_unsigned || j_T.type() == nlohmann::json::value_t::number_integer || j_T.type() == nlohmann::json::value_t::null)
 			{
 				Int64Property->SetPropertyValue(propertyPtr, j_T);
@@ -1302,14 +1451,23 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 		}
 		else
 		{
-			if (!fieldName_check(j, FloatProperty->GetName(), type_T))
+			std::string name = FString_To_stdstring(FloatProperty->GetName());
+			if (lowercaseID)
+			{
+				if (name._Equal("ID"))
+				{
+					name = "id";
+				}
+			}
+
+			if (!fieldName_check(j, stdstring_To_FString(name), type_T))
 			{
 				info = "fieldName not exists";
 				success = false;
 				return;
 			}
 
-			nlohmann::json j_T = j[FString_To_stdstring(FloatProperty->GetName())];
+			nlohmann::json j_T = j[name];
 			if (j_T.type() == nlohmann::json::value_t::number_unsigned || j_T.type() == nlohmann::json::value_t::number_integer || j_T.type() == nlohmann::json::value_t::number_float || j_T.type() == nlohmann::json::value_t::null)
 			{
 				FloatProperty->SetPropertyValue(propertyPtr, j_T);
@@ -1337,14 +1495,23 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 		}
 		else
 		{
-			if (!fieldName_check(j, NameProperty->GetName(), type_T))
+			std::string name = FString_To_stdstring(NameProperty->GetName());
+			if (lowercaseID)
+			{
+				if (name._Equal("ID"))
+				{
+					name = "id";
+				}
+			}
+
+			if (!fieldName_check(j, stdstring_To_FString(name), type_T))
 			{
 				info = "fieldName not exists";
 				success = false;
 				return;
 			}
 
-			nlohmann::json j_T = j[FString_To_stdstring(NameProperty->GetName())];
+			nlohmann::json j_T = j[name];
 			if (j_T.type() == nlohmann::json::value_t::string || j_T.type() == nlohmann::json::value_t::null)
 			{
 				NameProperty->SetPropertyValue(propertyPtr, FName(stdstring_To_FString(j_T)));
@@ -1358,7 +1525,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 	}
 	else if (StrProperty)
 	{
-	if (count == 0 || type == UUnrealJSONBPLibrary::Type::mapKeyType || type == UUnrealJSONBPLibrary::Type::mapValueType || type == UUnrealJSONBPLibrary::Type::setType || type == UUnrealJSONBPLibrary::Type::arrayType)
+		if (count == 0 || type == UUnrealJSONBPLibrary::Type::mapKeyType || type == UUnrealJSONBPLibrary::Type::mapValueType || type == UUnrealJSONBPLibrary::Type::setType || type == UUnrealJSONBPLibrary::Type::arrayType)
 		{
 			if (j.type() == nlohmann::json::value_t::string || j.type() == nlohmann::json::value_t::null)
 			{
@@ -1386,14 +1553,23 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 		}
 		else
 		{
-			if (!fieldName_check(j, StrProperty->GetName(), type_T))
+			std::string name = FString_To_stdstring(StrProperty->GetName());
+			if (lowercaseID)
+			{
+				if (name._Equal("ID"))
+				{
+					name = "id";
+				}
+			}
+
+			if (!fieldName_check(j, stdstring_To_FString(name), type_T))
 			{
 				info = "fieldName not exists";
 				success = false;
 				return;
 			}
 
-			nlohmann::json j_T = j[FString_To_stdstring(StrProperty->GetName())];
+			nlohmann::json j_T = j[name];
 			if (j_T.type() == nlohmann::json::value_t::string || j_T.type() == nlohmann::json::value_t::null)
 			{
 				StrProperty->SetPropertyValue(propertyPtr, stdstring_To_FString(j_T));
@@ -1435,14 +1611,23 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 		}
 		else
 		{
-			if (!fieldName_check(j, StrProperty->GetName(), type_T))
+			std::string name = FString_To_stdstring(TextProperty->GetName());
+			if (lowercaseID)
+			{
+				if (name._Equal("ID"))
+				{
+					name = "id";
+				}
+			}
+
+			if (!fieldName_check(j, stdstring_To_FString(name), type_T))
 			{
 				info = "fieldName not exists";
 				success = false;
 				return;
 			}
 
-			nlohmann::json j_T = j[FString_To_stdstring(StrProperty->GetName())];
+			nlohmann::json j_T = j[name];
 			if (j_T.type() == nlohmann::json::value_t::string || j_T.type() == nlohmann::json::value_t::null)
 			{
 				TextProperty->SetPropertyValue(propertyPtr, FText::FromString(stdstring_To_FString(j_T)));
@@ -1463,7 +1648,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 				for (TFieldIterator<FProperty> it(StructProperty->Struct); it; ++it)
 				{
 					auto param = it->ContainerPtrToValuePtr<void>(propertyPtr);
-					deserialize(j, *it, param, success, info, depth, UUnrealJSONBPLibrary::Type::other, {}, count + 1);
+					deserialize(j, *it, param, success, info, depth, lowercaseID, UUnrealJSONBPLibrary::Type::other, {}, count + 1);
 				}
 			}
 			else
@@ -1474,20 +1659,29 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 		}
 		else
 		{
-			if (!fieldName_check(j, StructProperty->GetName(), type_T))
+			std::string name = FString_To_stdstring(StructProperty->GetName());
+			if (lowercaseID)
+			{
+				if (name._Equal("ID"))
+				{
+					name = "id";
+				}
+			}
+
+			if (!fieldName_check(j, stdstring_To_FString(name), type_T))
 			{
 				info = "fieldName not exists";
 				success = false;
 				return;
 			}
 
-			nlohmann::json j_T = j[FString_To_stdstring(StructProperty->GetName())];
+			nlohmann::json j_T = j[name];
 			if (j_T.type() == nlohmann::json::value_t::object || j_T.type() == nlohmann::json::value_t::null)
 			{
 				for (TFieldIterator<FProperty> it(StructProperty->Struct); it; ++it)
 				{
 					auto param = it->ContainerPtrToValuePtr<void>(propertyPtr);
-					deserialize(j_T, *it, param, success, info, depth, UUnrealJSONBPLibrary::Type::other, {}, count + 1);
+					deserialize(j_T, *it, param, success, info, depth, lowercaseID, UUnrealJSONBPLibrary::Type::other, {}, count + 1);
 				}
 			}
 			else
@@ -1514,7 +1708,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 				{
 					auto param = it->ContainerPtrToValuePtr<void>(object);
 
-					deserialize(j, *it, param, success, info, depth, UUnrealJSONBPLibrary::Type::other, {}, count + 1);
+					deserialize(j, *it, param, success, info, depth, lowercaseID, UUnrealJSONBPLibrary::Type::other, {}, count + 1);
 				}
 			}
 			else
@@ -1525,14 +1719,23 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 		}
 		else
 		{
-			if (!fieldName_check(j, ObjectProperty->GetName(), type_T))
+			std::string name = FString_To_stdstring(ObjectProperty->GetName());
+			if (lowercaseID)
+			{
+				if (name._Equal("ID"))
+				{
+					name = "id";
+				}
+			}
+
+			if (!fieldName_check(j, stdstring_To_FString(name), type_T))
 			{
 				info = "fieldName not exists";
 				success = false;
 				return;
 			}
 
-			nlohmann::json j_O = j[FString_To_stdstring(ObjectProperty->GetName())];
+			nlohmann::json j_O = j[name];
 			if (j_O.type() == nlohmann::json::value_t::object || j_O.type() == nlohmann::json::value_t::null)
 			{
 				auto object = ObjectProperty->GetObjectPropertyValue(propertyPtr);
@@ -1546,7 +1749,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 				{
 					auto param = it->ContainerPtrToValuePtr<void>(object);
 
-					deserialize(j_O, *it, param, success, info, depth, UUnrealJSONBPLibrary::Type::other, {}, count + 1);
+					deserialize(j_O, *it, param, success, info, depth, lowercaseID, UUnrealJSONBPLibrary::Type::other, {}, count + 1);
 				}
 			}
 			else
@@ -1574,7 +1777,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 					const int32 itemSize = ArrayProperty->Inner->ElementSize;
 					uint8* itemAddr = (uint8*)FMemory::Malloc(itemSize);
 					FMemory::Memzero(itemAddr, itemSize);
-					deserialize(j_T, ArrayProperty->Inner, itemAddr, success, info, depth, UUnrealJSONBPLibrary::Type::arrayType, {}, count + 1);
+					deserialize(j_T, ArrayProperty->Inner, itemAddr, success, info, depth, lowercaseID, UUnrealJSONBPLibrary::Type::arrayType, {}, count + 1);
 					UKismetArrayLibrary::GenericArray_Set(propertyPtr, ArrayProperty, index, itemAddr, true);
 					FMemory::Free(itemAddr);
 				}
@@ -1587,14 +1790,23 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 		}
 		else
 		{
-			if (!fieldName_check(j, ArrayProperty->GetName(), type_T))
+			std::string name = FString_To_stdstring(ArrayProperty->GetName());
+			if (lowercaseID)
+			{
+				if (name._Equal("ID"))
+				{
+					name = "id";
+				}
+			}
+
+			if (!fieldName_check(j, stdstring_To_FString(name), type_T))
 			{
 				info = "fieldName not exists";
 				success = false;
 				return;
 			}
 
-			nlohmann::json j_A = j[FString_To_stdstring(ArrayProperty->GetName())];
+			nlohmann::json j_A = j[name];
 			if (j_A.type() == nlohmann::json::value_t::array || j_A.type() == nlohmann::json::value_t::null)
 			{
 				auto length = j_A.size();
@@ -1609,7 +1821,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 					const int32 itemSize = ArrayProperty->Inner->ElementSize;
 					uint8* itemAddr = (uint8*)FMemory::Malloc(itemSize);
 					FMemory::Memzero(itemAddr, itemSize);
-					deserialize(j_T, ArrayProperty->Inner, itemAddr, success, info, depth, UUnrealJSONBPLibrary::Type::other, {}, count + 1);
+					deserialize(j_T, ArrayProperty->Inner, itemAddr, success, info, depth, lowercaseID, UUnrealJSONBPLibrary::Type::other, {}, count + 1);
 					UKismetArrayLibrary::GenericArray_Set(propertyPtr, ArrayProperty, index, itemAddr, true);
 					FMemory::Free(itemAddr);
 				}
@@ -1642,14 +1854,23 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 		}
 		else
 		{
-			if (!fieldName_check(j, StrProperty->GetName(), type_T))
+			std::string name = FString_To_stdstring(StrProperty->GetName());
+			if (lowercaseID)
+			{
+				if (name._Equal("ID"))
+				{
+					name = "id";
+				}
+			}
+
+			if (!fieldName_check(j, stdstring_To_FString(name), type_T))
 			{
 				info = "fieldName not exists";
 				success = false;
 				return;
 			}
 
-			nlohmann::json j_T = j[FString_To_stdstring(StrProperty->GetName())];
+			nlohmann::json j_T = j[name];
 			if (j_T.type() == nlohmann::json::value_t::string || j_T.type() == nlohmann::json::value_t::null)
 			{
 				TextProperty->SetPropertyValue(propertyPtr, FText::FromString(stdstring_To_FString(j_T)));
@@ -1705,8 +1926,8 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 					FMemory::Memzero(keyAddr, keySize);
 					FMemory::Memzero(ValueAddr, ValueSize);
 
-					deserialize(j_T_prop, keyProp, keyAddr, success, info, depth, UUnrealJSONBPLibrary::Type::mapKeyType, {}, count + 1);
-					deserialize(it.value(), valueProp, ValueAddr, success, info, depth, UUnrealJSONBPLibrary::Type::mapValueType, {}, count + 1);
+					deserialize(j_T_prop, keyProp, keyAddr, success, info, depth, lowercaseID, UUnrealJSONBPLibrary::Type::mapKeyType, {}, count + 1);
+					deserialize(it.value(), valueProp, ValueAddr, success, info, depth, lowercaseID, UUnrealJSONBPLibrary::Type::mapValueType, {}, count + 1);
 
 					UBlueprintMapLibrary::GenericMap_Add(propertyPtr, MapProperty, keyAddr, ValueAddr);
 
@@ -1722,14 +1943,23 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 		}
 		else
 		{
-			if (!fieldName_check(j, MapProperty->GetName(), type_T))
+			std::string name = FString_To_stdstring(MapProperty->GetName());
+			if (lowercaseID)
+			{
+				if (name._Equal("ID"))
+				{
+					name = "id";
+				}
+			}
+
+			if (!fieldName_check(j, stdstring_To_FString(name), type_T))
 			{
 				info = "fieldName not exists";
 				success = false;
 				return;
 			}
 
-			nlohmann::json j_M = j[FString_To_stdstring(MapProperty->GetName())];
+			nlohmann::json j_M = j[name];
 			if (j_M.type() == nlohmann::json::value_t::object || j_M.type() == nlohmann::json::value_t::null)
 			{
 				UBlueprintMapLibrary::GenericMap_Clear(propertyPtr, MapProperty);
@@ -1757,8 +1987,8 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 
 					nlohmann::json j_T_prop = nlohmann::json::parse(it.key());
 
-					deserialize(j_T_prop, keyProp, keyAddr, success, info, depth, UUnrealJSONBPLibrary::Type::other, {}, count + 1);
-					deserialize(it.value(), valueProp, ValueAddr, success, info, depth, UUnrealJSONBPLibrary::Type::other, {}, count + 1);
+					deserialize(j_T_prop, keyProp, keyAddr, success, info, depth, lowercaseID, UUnrealJSONBPLibrary::Type::other, {}, count + 1);
+					deserialize(it.value(), valueProp, ValueAddr, success, info, depth, lowercaseID, UUnrealJSONBPLibrary::Type::other, {}, count + 1);
 
 					UBlueprintMapLibrary::GenericMap_Add(propertyPtr, MapProperty, keyAddr, ValueAddr);
 
@@ -1792,7 +2022,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 					uint8* elementAddr = (uint8*)FMemory::Malloc(elementSize);
 					FMemory::Memzero(elementAddr, elementSize);
 
-					deserialize(it.value(), elementProp, elementAddr, success, info, depth, UUnrealJSONBPLibrary::Type::setType, {}, count + 1);
+					deserialize(it.value(), elementProp, elementAddr, success, info, depth, lowercaseID, UUnrealJSONBPLibrary::Type::setType, {}, count + 1);
 
 					UBlueprintSetLibrary::GenericSet_Add(propertyPtr, SetProperty, elementAddr);
 
@@ -1807,14 +2037,23 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 		}
 		else
 		{
-			if (!fieldName_check(j, SetProperty->GetName(), type_T))
+			std::string name = FString_To_stdstring(SetProperty->GetName());
+			if (lowercaseID)
+			{
+				if (name._Equal("ID"))
+				{
+					name = "id";
+				}
+			}
+
+			if (!fieldName_check(j, stdstring_To_FString(name), type_T))
 			{
 				info = "fieldName not exists";
 				success = false;
 				return;
 			}
 
-			nlohmann::json j_M = j[FString_To_stdstring(SetProperty->GetName())];
+			nlohmann::json j_M = j[name];
 			if (j_M.type() == nlohmann::json::value_t::object || j_M.type() == nlohmann::json::value_t::null)
 			{
 				UBlueprintSetLibrary::GenericSet_Clear(propertyPtr, SetProperty);
@@ -1830,7 +2069,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 					uint8* elementAddr = (uint8*)FMemory::Malloc(elementSize);
 					FMemory::Memzero(elementAddr, elementSize);
 
-					deserialize(it.value(), elementProp, elementAddr, success, info, depth, UUnrealJSONBPLibrary::Type::setType, {}, count + 1);
+					deserialize(it.value(), elementProp, elementAddr, success, info, depth, lowercaseID, UUnrealJSONBPLibrary::Type::setType, {}, count + 1);
 
 					UBlueprintSetLibrary::GenericSet_Add(propertyPtr, SetProperty, elementAddr);
 
@@ -1937,10 +2176,10 @@ bool UUnrealJSONBPLibrary::fieldName_check(const nlohmann::json& j, const FStrin
 		{
 			return false;
 		}
-	}
+		}
 
 	return true;
-}
+	}
 
 bool UUnrealJSONBPLibrary::pathCheck(nlohmann::json& j, const FString& fieldName, nlohmann::json*& j_Ptr, FString& lastFieldName, bool retain)
 {

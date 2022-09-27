@@ -39,6 +39,7 @@
 |FString& info|附加信息|如果失败，则附加信息会说明失败原因|
 |int32 depth = 10|展开深度|可能会存在耦合形成闭环的情况，将会导致无限展开，因此设置展开深度，遍历节点的过程中，当某节点达到深度后，该节点不再展开解析|
 |FString mainKey|最外层键|若缺省则自动使用变量名|
+|bool lowercaseID|特例：如果变量名为id则打包之后，蓝图虚拟机会自动大写为ID|默认关闭，如果打开，则将大写替换为小写|
 
 ![T_TO_JSON示例](./markdown/gif/T_TO_JSON.gif)
 ![T_TO_JSON示例](./markdown/png/T_TO_JSON.png)
@@ -52,6 +53,7 @@
 |bool& success|是否成功|成功才生成|
 |FString& info|附加信息|如果失败，则附加信息会说明失败原因|
 |int32 depth = 10|展开深度|可能会存在耦合形成闭环的情况，将会导致无限展开，因此设置展开深度，遍历节点的过程中，当某节点达到深度后，该节点不再展开解析|
+|bool lowercaseID|特例：如果变量名为id则打包之后，蓝图虚拟机会自动大写为ID|默认关闭，如果打开，则将大写替换为小写|
 
 ![JSON_TO_T示例](./markdown/gif/JSON_TO_T1.webp)
 ![JSON_TO_T示例](./markdown/gif/JSON_TO_T2.webp)
@@ -66,6 +68,7 @@
 |FString& result|输出json字符串|新增字段后的json字符串|
 |int32 depth = 10|展开深度|可能会存在耦合形成闭环的情况，将会导致无限展开，因此设置展开深度，遍历节点的过程中，当某节点达到深度后，该节点不再展开解析|
 |bool keepJsonObject = true|保持json对象|如果T是字符串，且keepJsonObject==true，则会将T解析为JsonObject进行add，否则作为字符串进行add|
+|bool lowercaseID|特例：如果变量名为id则打包之后，蓝图虚拟机会自动大写为ID|默认关闭，如果打开，则将大写替换为小写|
 
 ```javascript
 {
@@ -134,6 +137,7 @@ UMyObject1::UMyObject1()
 |FString& result|输出json字符串|更新字段后的json字符串|
 |int32 depth = 10|展开深度|可能会存在耦合形成闭环的情况，将会导致无限展开，因此设置展开深度，遍历节点的过程中，当某节点达到深度后，该节点不再展开解析|
 |bool keepJsonObject = true|保持json对象|如果T是字符串，且keepJsonObject==true，则会将T解析为JsonObject进行update，否则作为字符串进行update|
+|bool lowercaseID|特例：如果变量名为id则打包之后，蓝图虚拟机会自动大写为ID|默认关闭，如果打开，则将大写替换为小写|
 
 ![UpdateField](./markdown/png/UpdateField.png)
 ###  2.5. <a name='DeleteField'></a>DeleteField
