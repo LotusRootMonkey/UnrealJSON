@@ -303,6 +303,35 @@ bool UUnrealJSONBPLibrary::generationSeparator(const TArray<FString>& fieldNameA
 	return true;
 }
 
+bool UUnrealJSONBPLibrary::matchingType(const FString& json, EJsonType type)
+{
+	if (nlohmann::json::accept(FString_To_stdstring(json)) == false)
+	{
+		return false;
+	}
+
+	nlohmann::json j = nlohmann::json::parse(FString_To_stdstring(json));
+
+	switch (type)
+	{
+	case EJsonType::array:return j.is_array();
+	case EJsonType::binary:return j.is_binary();
+	case EJsonType::boolean:return j.is_boolean();
+	case EJsonType::discarded:return j.is_discarded();
+	case EJsonType::null:return j.is_null();
+	case EJsonType::number:return j.is_number();
+	case EJsonType::number_float:return j.is_number_float();
+	case EJsonType::number_integer:return j.is_number_integer();
+	case EJsonType::number_unsigned:return j.is_number_unsigned();
+	case EJsonType::object:return j.is_object();
+	case EJsonType::primitive:return j.is_primitive();
+	case EJsonType::string:return j.is_string();
+	case EJsonType::structured:return j.is_structured();
+	default:
+		return false;
+	}
+}
+
 void UUnrealJSONBPLibrary::Generic_T_TO_JSON(FString mainKey, FProperty* property, void* propertyPtr, FString& json, bool& success, FString& info, int32 depth, bool lowercaseID)
 {
 	success = true;

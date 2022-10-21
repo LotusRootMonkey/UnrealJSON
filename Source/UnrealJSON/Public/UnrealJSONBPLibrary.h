@@ -9,6 +9,24 @@
 PRAGMA_DISABLE_OPTIMIZATION
 #endif
 
+UENUM(BlueprintType)
+enum class EJsonType : uint8
+{
+	array			UMETA(DisplayName = "array"),
+	string			UMETA(DisplayName = "string"),
+	binary			UMETA(DisplayName = "binary"),
+	boolean			UMETA(DisplayName = "boolean"),
+	discarded		UMETA(DisplayName = "discarded"),
+	null			UMETA(DisplayName = "null"),
+	number			UMETA(DisplayName = "number"),
+	number_float	UMETA(DisplayName = "number_float"),
+	number_integer	UMETA(DisplayName = "number_integer"),
+	number_unsigned	UMETA(DisplayName = "number_unsigned"),
+	object			UMETA(DisplayName = "object"),
+	primitive		UMETA(DisplayName = "primitive"),
+	structured		UMETA(DisplayName = "structured"),
+};
+
 UCLASS()
 class UUnrealJSONBPLibrary final : public UBlueprintFunctionLibrary
 {
@@ -65,6 +83,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "JSON Tools")
 		static bool generationSeparator(const TArray<FString>& fieldNameArray, FString& fieldName);
+
+	UFUNCTION(BlueprintCallable, Category = "JSON Tools")
+		static bool matchingType(const FString& json, EJsonType type);
 
 private:
 	DECLARE_FUNCTION(execT_TO_JSON)

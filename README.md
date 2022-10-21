@@ -14,6 +14,7 @@
 	* 3.2. [工具](#-1)
 		* 3.2.1. [analyticalSeparator](#analyticalSeparator)
 		* 3.2.2. [generationSeparator](#generationSeparator)
+		* 3.2.3. [matchingType](#matchingType)
 	* 3.3. [注意](#-1)
 		* 3.3.1. [上述接口的fieldName都支持使用层级分隔符来定位](#fieldName)
 * 4. [支持的平台](#-1)
@@ -225,13 +226,20 @@ UMyObject1::UMyObject1()
 |:-:|:-:|
 |const FString& fieldName|要操作的字段名，支持层级分隔符|
 |TArray<FString>& fieldNameArray|根据层级分隔符切分|
+
 ![analyticalSeparator](./markdown/gif/analyticalSeparator.webp)
 ####  3.2.2. <a name='generationSeparator'></a>generationSeparator
 |参数|参数解释|
 |:-:|:-:|
 |const TArray<FString>& fieldNameArra|每一层的键|
 |FString& fieldName|根据层级分隔符拼接后的完整字段名|
+
 ![generationSeparator](./markdown/gif/generationSeparator.webp)
+####  3.2.3. <a name='matchingType'></a>matchingType
+|参数|参数解释|
+|:-:|:-:|
+|const FString& json|待判断的字符串|
+|EJsonType type|期望的类型|
 ###  3.3. <a name='-1'></a>注意
 ####  3.3.1. <a name='fieldName'></a>上述接口的fieldName都支持使用层级分隔符来定位
 ##  4. <a name='-1'></a>支持的平台
