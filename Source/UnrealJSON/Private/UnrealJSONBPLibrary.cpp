@@ -1850,7 +1850,7 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 					const int32 itemSize = ArrayProperty->Inner->ElementSize;
 					uint8* itemAddr = (uint8*)FMemory::Malloc(itemSize);
 					FMemory::Memzero(itemAddr, itemSize);
-					deserialize(j_T, ArrayProperty->Inner, itemAddr, success, info, depth, lowercaseID, UUnrealJSONBPLibrary::Type::other, {}, count + 1);
+					deserialize(j_T, ArrayProperty->Inner, itemAddr, success, info, depth, lowercaseID, UUnrealJSONBPLibrary::Type::arrayType, {}, count + 1);
 					UKismetArrayLibrary::GenericArray_Set(propertyPtr, ArrayProperty, index, itemAddr, true);
 					FMemory::Free(itemAddr);
 				}
