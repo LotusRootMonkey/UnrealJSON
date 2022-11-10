@@ -1110,13 +1110,9 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 			std::string name = FString_To_stdstring(ArrayProperty->GetName());
 			if (lowercase)
 			{
-				if (name._Equal("ID"))
+				if (lowercase)
 				{
-					name = "id";
-				}
-				else if ('A' <= name[0] && name[0] <= 'Z')
-				{
-					name[0] += 32;
+					std::transform(name.begin(), name.end(), name.begin(), ::tolower);			 
 				}
 			}
 			j[name] = j_T;
@@ -1204,13 +1200,9 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 			std::string name = FString_To_stdstring(MapProperty->GetName());
 			if (lowercase)
 			{
-				if (name._Equal("ID"))
+				if (lowercase)
 				{
-					name = "id";
-				}
-				else if ('A' <= name[0] && name[0] <= 'Z')
-				{
-					name[0] += 32;
+					std::transform(name.begin(), name.end(), name.begin(), ::tolower);			 
 				}
 			}
 			j[name] = j_T;
@@ -1249,13 +1241,9 @@ void UUnrealJSONBPLibrary::serialize(FProperty* property, void* propertyPtr, boo
 			std::string name = FString_To_stdstring(SetProperty->GetName());
 			if (lowercase)
 			{
-				if (name._Equal("ID"))
+				if (lowercase)
 				{
-					name = "id";
-				}
-				else if ('A' <= name[0] && name[0] <= 'Z')
-				{
-					name[0] += 32;
+					std::transform(name.begin(), name.end(), name.begin(), ::tolower);			 
 				}
 			}
 			j[name] = j_T;
@@ -1315,13 +1303,9 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 			std::string name = FString_To_stdstring(BoolProperty->GetName());
 			if (lowercase)
 			{
-				if (name._Equal("ID"))
+				if (lowercase)
 				{
-					name = "id";
-				}
-				else if ('A' <= name[0] && name[0] <= 'Z')
-				{
-					name[0] += 32;
+					std::transform(name.begin(), name.end(), name.begin(), ::tolower);			 
 				}
 			}
 
@@ -1363,13 +1347,9 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 			std::string name = FString_To_stdstring(ByteProperty->GetName());
 			if (lowercase)
 			{
-				if (name._Equal("ID"))
+				if (lowercase)
 				{
-					name = "id";
-				}
-				else if ('A' <= name[0] && name[0] <= 'Z')
-				{
-					name[0] += 32;
+					std::transform(name.begin(), name.end(), name.begin(), ::tolower);			 
 				}
 			}
 
@@ -1411,13 +1391,9 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 			std::string name = FString_To_stdstring(IntProperty->GetName());
 			if (lowercase)
 			{
-				if (name._Equal("ID"))
+				if (lowercase)
 				{
-					name = "id";
-				}
-				else if ('A' <= name[0] && name[0] <= 'Z')
-				{
-					name[0] += 32;
+					std::transform(name.begin(), name.end(), name.begin(), ::tolower);			 
 				}
 			}
 
@@ -1459,13 +1435,9 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 			std::string name = FString_To_stdstring(Int64Property->GetName());
 			if (lowercase)
 			{
-				if (name._Equal("ID"))
+				if (lowercase)
 				{
-					name = "id";
-				}
-				else if ('A' <= name[0] && name[0] <= 'Z')
-				{
-					name[0] += 32;
+					std::transform(name.begin(), name.end(), name.begin(), ::tolower);			 
 				}
 			}
 
@@ -1507,13 +1479,9 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 			std::string name = FString_To_stdstring(FloatProperty->GetName());
 			if (lowercase)
 			{
-				if (name._Equal("ID"))
+				if (lowercase)
 				{
-					name = "id";
-				}
-				else if ('A' <= name[0] && name[0] <= 'Z')
-				{
-					name[0] += 32;
+					std::transform(name.begin(), name.end(), name.begin(), ::tolower);			 
 				}
 			}
 
@@ -1555,13 +1523,9 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 			std::string name = FString_To_stdstring(NameProperty->GetName());
 			if (lowercase)
 			{
-				if (name._Equal("ID"))
+				if (lowercase)
 				{
-					name = "id";
-				}
-				else if ('A' <= name[0] && name[0] <= 'Z')
-				{
-					name[0] += 32;
+					std::transform(name.begin(), name.end(), name.begin(), ::tolower);			 
 				}
 			}
 
@@ -1617,13 +1581,9 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 			std::string name = FString_To_stdstring(StrProperty->GetName());
 			if (lowercase)
 			{
-				if (name._Equal("ID"))
+				if (lowercase)
 				{
-					name = "id";
-				}
-				else if ('A' <= name[0] && name[0] <= 'Z')
-				{
-					name[0] += 32;
+					std::transform(name.begin(), name.end(), name.begin(), ::tolower);			 
 				}
 			}
 
@@ -1679,13 +1639,9 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 			std::string name = FString_To_stdstring(TextProperty->GetName());
 			if (lowercase)
 			{
-				if (name._Equal("ID"))
+				if (lowercase)
 				{
-					name = "id";
-				}
-				else if ('A' <= name[0] && name[0] <= 'Z')
-				{
-					name[0] += 32;
+					std::transform(name.begin(), name.end(), name.begin(), ::tolower);			 
 				}
 			}
 
@@ -1731,13 +1687,9 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 			std::string name = FString_To_stdstring(StructProperty->GetName());
 			if (lowercase)
 			{
-				if (name._Equal("ID"))
+				if (lowercase)
 				{
-					name = "id";
-				}
-				else if ('A' <= name[0] && name[0] <= 'Z')
-				{
-					name[0] += 32;
+					std::transform(name.begin(), name.end(), name.begin(), ::tolower);			 
 				}
 			}
 
@@ -1795,13 +1747,9 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 			std::string name = FString_To_stdstring(ObjectProperty->GetName());
 			if (lowercase)
 			{
-				if (name._Equal("ID"))
+				if (lowercase)
 				{
-					name = "id";
-				}
-				else if ('A' <= name[0] && name[0] <= 'Z')
-				{
-					name[0] += 32;
+					std::transform(name.begin(), name.end(), name.begin(), ::tolower);			 
 				}
 			}
 
@@ -1870,13 +1818,9 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 			std::string name = FString_To_stdstring(ArrayProperty->GetName());
 			if (lowercase)
 			{
-				if (name._Equal("ID"))
+				if (lowercase)
 				{
-					name = "id";
-				}
-				else if ('A' <= name[0] && name[0] <= 'Z')
-				{
-					name[0] += 32;
+					std::transform(name.begin(), name.end(), name.begin(), ::tolower);			 
 				}
 			}
 
@@ -1938,13 +1882,9 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 			std::string name = FString_To_stdstring(StrProperty->GetName());
 			if (lowercase)
 			{
-				if (name._Equal("ID"))
+				if (lowercase)
 				{
-					name = "id";
-				}
-				else if ('A' <= name[0] && name[0] <= 'Z')
-				{
-					name[0] += 32;
+					std::transform(name.begin(), name.end(), name.begin(), ::tolower);			 
 				}
 			}
 
@@ -2031,13 +1971,9 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 			std::string name = FString_To_stdstring(MapProperty->GetName());
 			if (lowercase)
 			{
-				if (name._Equal("ID"))
+				if (lowercase)
 				{
-					name = "id";
-				}
-				else if ('A' <= name[0] && name[0] <= 'Z')
-				{
-					name[0] += 32;
+					std::transform(name.begin(), name.end(), name.begin(), ::tolower);			 
 				}
 			}
 
@@ -2129,13 +2065,9 @@ void UUnrealJSONBPLibrary::deserialize(nlohmann::json& j, FProperty* property, v
 			std::string name = FString_To_stdstring(SetProperty->GetName());
 			if (lowercase)
 			{
-				if (name._Equal("ID"))
+				if (lowercase)
 				{
-					name = "id";
-				}
-				else if ('A' <= name[0] && name[0] <= 'Z')
-				{
-					name[0] += 32;
+					std::transform(name.begin(), name.end(), name.begin(), ::tolower);			 
 				}
 			}
 
